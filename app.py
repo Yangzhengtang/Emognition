@@ -184,9 +184,7 @@ def navigatefterSelection():
         selection = request.form.get('selection')
         print("Got it")
         print(description + selection)
-    return render_template('uploadSuccess.html')
-
-
+    return render_template('all_result.html')
 
 if __name__ == '__main__':
     app.run(threaded=True,host="0.0.0.0")
