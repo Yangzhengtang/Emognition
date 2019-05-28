@@ -37,7 +37,7 @@
         <![endif]-->
     </head>
     <body>
-        
+
         <!--================Header Menu Area =================-->
         <header class="main_menu_area">
             <nav class="navbar navbar-expand-lg navbar-light bg-light">
@@ -65,8 +65,14 @@
         <section class="banner_area">
             <div class="container">
                 <div class="banner_inner_text">
+
+                    {% block baseHeaderText %}
+
                     <h2>Emotion Recognition</h2>
                     <p>I love the way your eye, It doth shine like an Egyptian ruby.</p>
+                
+                    {% endblock %}
+
                 </div>
             </div>
         </section>

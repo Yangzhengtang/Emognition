@@ -1,30 +1,17 @@
 {% extends 'sierra/base.html' %}
-{% block title %}注册{% endblock title %}
+
+{% block title %}Upload success{% endblock title %}
+
 {% block styles %}
     {{ super() }}
     <link href="{{ url_for('static', filename='login.css') }}" rel="stylesheet">
 {% endblock styles %}
-{% block navli %}
-    <ul class="nav navbar-nav navbar-right">
-        {% if session.is_login %}
-            <li><a href="/">您好！{{ session.name }}</a></li>
-            <li><a href="/logout">退出</a><li>
-            {% else %}
-            <li><a href="/">您好！</a></li>
-            <li><a href="/login">登录</a></li>
-            <li class="active"><a href="#">注册</a></li>
-        {% endif %}
-    </ul>
-{% endblock navli %}
-{% block content %}
-    <div class="container form-login">
-        {% for message in get_flashed_messages() %}
-            <div class="alert alert-warning">
-                <button type="button" class="close" data-dismiss="alert">&times;</button>
-                {{ message }}
-            </div>
-        {% endfor %}
-    </div>
-      <h style="text-align: center">UPLOAD SUCCESS</h>
 
-{% endblock content %}
+{% block baseHeaderText %}
+    <h2>Thank you!</h2>
+    <p>Upload success</p>
+{% endblock %}
+
+{% block content %}
+
+{% endblock %}

@@ -29,15 +29,16 @@
 			            <h3>Please select your description</h3>
 			        </div>
 			        <li>
-                    <form name="choice" action="finishUpload" method='POST'>
-                    	<div style="width: 200px; height: 60px; border-radius: 5px; box-shadow: 0 0 5px #ccc; position: relative; margin : 5%;">
-                            {% for label in label_list %}
-                                <tr>
-                                    <td><input name="selected_label" value={{ label }} type="submit"> </td>
-                                </tr>
-                            {% endfor %}
+                        <div class="container">                
+                            <form name="choice" action="finishUpload" method='POST'>
+                                {% for label in label_list %}
+                                    <button type="submit" value={{ label }} class="btn submit_btn form-control" name="selected_label">{{ label }}</button>
+                                {% endfor %}
+        					</form>
                         </div>
-					</form>
+                        <!--<div class="container">
+                            <a class="more_btn" href="home" >Cancel</a>
+                        </div>-->
                     </li>
 			    </div>
 			</div>

@@ -13,6 +13,7 @@ app.config["SECRET_KEY"] = os.urandom(24)
 bootstrap=Bootstrap(app)
 mongo_address='127.0.0.1' #数据库所在ip地址
 client = MongoClient(host=mongo_address, port=27017)
+client.web.authenticate('app','fuckingApp')
 app.config['MAX_CONTENT_LENGTH'] = 512 * 1024 * 1024    # 最大上传文件大小
 dropzone = Dropzone(app)
 
@@ -85,8 +86,8 @@ def register():
             if password != confirm_password:
                 flash('两次输入的密码不一致！')
                 return render_template('register.html', username=username)
-            db = client.users
-            db.user.insert(insert_info)
+            db = client.web
+            db.users.insert(insert_info)
             return redirect('/login')
         else:
             flash('所有字段都必须输入！')
@@ -102,8 +103,8 @@ def login():
         username = request.form.get('username')
         password = hash_code(request.form.get('password'))
         print("user: %s, password: %s" % (username, password))
-        db = client.users
-        collection = db.user.find_one({'username':username})
+        db = client.web
+        collection = db.users.find_one({'username':username})
         if collection['password'] == password:
             # 登录成功后存储session信息
             session['is_login'] = True
@@ -158,7 +159,7 @@ def finishUpload():
         img_path=get_img_path()
     if img_path=='-1':
         return render_template('uploadSuccess.html')
-    label_list=['angry','happy','fear','sad']   # 之后为从数据库读取，各个用户所需标签不同
+    label_list=['angry','happy','fear','sad', 'surprise', 'neural']   # 之后为从数据库读取，各个用户所需标签不同
     return render_template('setLabel.html',label_list=label_list,img_path=img_path)
 
 
