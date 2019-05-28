@@ -45,15 +45,18 @@ def get_upload_img():   # 由于有.gitkeep文件，所以需要过滤一次，�
     uploaded_img.remove('.gitkeep')
     return
 
+def clear_imgs():
+    global upload_img_count,uploaded_img
+    for img in uploaded_img:    # 删除临时文件
+            os.remove(os.path.join("static/TmpUploadDir",img))
+    print("Clear temp pics")
+
 def get_img_path(): # 加载下一张临时图片
     global upload_img_count,uploaded_img
     get_upload_img()    # 修改全局变量uploaded_img,如果uploaded_img为空则将临时文件夹下所有文件名加入uploaded_img
     if upload_img_count==0:
-        for img in uploaded_img:    # 删除临时文件
-            os.remove(os.path.join("static/TmpUploadDir",img))
         return '-1'
     filepath=uploaded_img[upload_img_count-1]
-    #print("get_img_path: %s" % filepath)
     upload_img_count-=1
     return os.path.join('static/TmpUploadDir',filepath)
 
@@ -148,23 +151,38 @@ def navigatefterSelection():
         print(description + selection)
     return render_template('sierra/base.html')
 
-label = 'Nothing'
+img_path = '-1'
+label = '-1'
 @app.route('/finishUpload',methods=['POST','GET'])
 def finishUpload():
+    global img_path, label, upload_img_count, uploaded_img
+
     if request.method=='POST':
         label = request.form.get('selected_label')
         print(label)
-        img_path=get_img_path()
-    else:
-        img_path=get_img_path()
-    if img_path=='-1':
-        return render_template('uploadSuccess.html')
-    else:
+
+    temp_img_path=get_img_path()
+    print("Got temp:%s" % temp_img_path)
+
+    if temp_img_path=='-1':
+        temp_img_path=get_img_path()
         print("Here is File Path! %s" % img_path)
         query = {'filename': img_path}  ####
         id = gfs.insertFile(file_db_handler, img_path,query)    #插入文件
         db = client.web
-        db.labels.insert({'label':label, 'id':id})  #   insert label
+        db.labels.insert({'label':label, 'id':id})  
+        clear_imgs()
+        img_path = '-1'
+        label = '-1'
+        upload_img_count=0
+        uploaded_img=[]
+        return render_template('uploadSuccess.html')
+
+    else:
+        img_path = temp_img_path
+
+
+
     label_list=['angry','happy','fear','sad', 'surprise', 'neural']   # 之后为从数据库读取，各个用户所需标签不同
     return render_template('setLabel.html',label_list=label_list,img_path=img_path)
 
