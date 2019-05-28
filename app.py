@@ -5,18 +5,28 @@ import hashlib
 from flask_dropzone import Dropzone
 from gridfs import *
 import os
+from GFS import *
 
 
 app = Flask(__name__)
 # app.config.from_object(config)
 app.config["SECRET_KEY"] = os.urandom(24)
-bootstrap=Bootstrap(app)
-mongo_address='127.0.0.1' #数据库所在ip地址
-client = MongoClient(host=mongo_address, port=27017)
-client.web.authenticate('app','fuckingApp')
 app.config['MAX_CONTENT_LENGTH'] = 512 * 1024 * 1024    # 最大上传文件大小
 dropzone = Dropzone(app)
+bootstrap = Bootstrap(app)
 
+
+Mongo_Addr = '127.0.0.1' #数据库所在ip地址
+Mongo_Port = 27017
+Mongo_Database = 'web'
+Mongo_User = 'app'
+Mongo_Password = 'fuckingApp'
+Picture_Collection = 'pictures'
+
+client = MongoClient(host=Mongo_Addr, port=Mongo_Port)
+client.web.authenticate(Mongo_User, Mongo_Password)     # Login 
+gfs=GFS(Mongo_Database, Picture_Collection, client)     #   gridfs initialize
+(file_db_handler,file_table_handler) = gfs.createDB()
 
 def hash_code(s, salt='huyz'):
     md5 = hashlib.md5()
@@ -43,6 +53,7 @@ def get_img_path(): # 加载下一张临时图片
             os.remove(os.path.join("static/TmpUploadDir",img))
         return '-1'
     filepath=uploaded_img[upload_img_count-1]
+    #print("get_img_path: %s" % filepath)
     upload_img_count-=1
     return os.path.join('static/TmpUploadDir',filepath)
 
@@ -61,18 +72,8 @@ def upload():
         file.save(os.path.join('static/TmpUploadDir', fname))  # 保存到临时文件夹
         global upload_img_count
         upload_img_count+=1
-        # print(upload_img_count)
-        # print("Got the file.")
+        print("Got the file. %s" % fname)
     return render_template('upload.html')
-
-
-
-    # client = MongoClient('localhost', 27017)
-    # db = client.Pic
-    # fs = GridFS(db, 'images')
-    # with open ('F:/测试数据/hehe.jpg'.decode('utf-8'),'rb') as myimage:
-    #     data=myimage.read()
-    #     id = fs.put(data,filename='first')
 
 
 @app.route('/register', methods=['GET', 'POST'])
@@ -147,18 +148,23 @@ def navigatefterSelection():
         print(description + selection)
     return render_template('sierra/base.html')
 
-
+label = 'Nothing'
 @app.route('/finishUpload',methods=['POST','GET'])
 def finishUpload():
     if request.method=='POST':
-        label=request.form.get('selected_label')
+        label = request.form.get('selected_label')
         print(label)
         img_path=get_img_path()
-        #########################这里应该完成插入数据库的操作######################
     else:
         img_path=get_img_path()
     if img_path=='-1':
         return render_template('uploadSuccess.html')
+    else:
+        print("Here is File Path! %s" % img_path)
+        query = {'filename': img_path}  ####
+        id = gfs.insertFile(file_db_handler, img_path,query)    #插入文件
+        db = client.web
+        db.labels.insert({'label':label, 'id':id})  #   insert label
     label_list=['angry','happy','fear','sad', 'surprise', 'neural']   # 之后为从数据库读取，各个用户所需标签不同
     return render_template('setLabel.html',label_list=label_list,img_path=img_path)
 
