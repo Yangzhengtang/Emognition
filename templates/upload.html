@@ -41,30 +41,41 @@
 			            <h3>Please select your description</h3>
 			        </div>
 			        <li>
+			        	<!--这是一个注释，注释在浏览器中不会显示
+			        	<form name="Item_1" action="results.html" method='POST'>
                             <a class="dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                             Blog
                             </a>
-                            <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
-                                <li class="nav-item"><a class="nav-link" href="blog.html">Blog</a></li>
-                                <li class="nav-item"><a class="nav-link" href="single-blog.html">Blog Details</a></li>
-                                <li class="nav-item active"><a class="nav-link" href="elements.html">Elements</a></li>
+                            <ul class="dropdown-menu" aria-labelledby="navbarDropdown" name="Item_1">
+                                <li class="nav-item"><a class="nav-link">Blog</a></li>
+                                <li class="nav-item"><a class="nav-link">Blog Details</a></li>
+                                <li class="nav-item active"><a class="nav-link">Elements</a></li>
                             </ul>
+                        </form>
 
+                        <select class="dropdown-toggle" data-toggle="dropdown" href="#" id="navbarDropdown_" name="Discription">
+                        	<option value="0">Discription</option>
+                        </select>
 
-                            <select class="dropdown-toggle" data-toggle="dropdown" href="#" id="navbarDropdown_" name="Discription">
-                            	<option value="0">Discription</option>
-                            </select>
+                        <ul class="dropdown-menu" aria-labelledby="navbarDropdown_">
+                            <option value="Red">Red</option>option>
+                       		<option value="Green">Green</option>option>  
+                        </ul>
 
-                            <ul class="dropdown-menu" aria-labelledby="navbarDropdown_">
-                                <option value="Red">Red</option>option>
-                           		<option value="Green">Green</option>option>  
-                            </ul>
-                            <select name="Item_1">
+                        <select name="Item_1">
+                        	<option value="Red">Red</option>option>
+                       		<option value="Green">Green</option>option>        
+                       	</select>
+						-->
 
-                            	<option value="Red">Red</option>option>
-                           		<option value="Green">Green</option>option>        
-
-                           	</select>
+                       	<form name="description" action="results.html" method='POST'>
+						    <select name="description">
+						        <option value="angry">angry</option>
+						        <option value="happy">happy</option>        
+						        <option value="sad">sad</option>        
+						    </select>
+						    <button type="submit">Commit!</button>
+						</form>
                     </li>
 			    </div>
 			</div>
