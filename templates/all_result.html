@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>result</title>
+    <!-- 引入 echarts.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/echarts/4.1.0/echarts.min.js"></script>
+</head>
+<body>
+    <div id="main" style="width: 1200px;height:700px;"></div>
+    <script type="text/javascript">
+        var myChart = echarts.init(document.getElementById('main'));
+        var myGeocode = {{ ruleList|tojson }}
+        var option = {
+            grid: {
+        bottom:'15%'
+    },
+
+    title : {
+        text: '关联规则'
+    },
+    tooltip : {
+        trigger: 'axis'
+    },
+    legend: {
+        data:['支持度sup','置信度conf']
+    },
+    toolbox: {
+        show : true,
+        feature : {
+            dataView : {show: true, readOnly: false},
+            magicType : {show: true, type: ['line', 'bar']},
+            restore : {show: true},
+            saveAsImage : {show: true}
+        }
+    },
+    calculable : true,
+    xAxis : [
+        {
+            type : 'category',
+            data :myGeocode,
+            axisLabel:{
+						     interval:0,//横轴信息全部显示
+						     rotate:30,//-30度角倾斜显示
+						}
+        }
+    ],
+    yAxis : [
+        {
+            type : 'value'
+        }
+    ],
+    series : [
+        {
+            name:'支持度sup',
+            type:'bar',
+            data:{{ supList }},
+            markPoint : {
+                data : [
+                    {type : 'max', name: '最大值'},
+                    {type : 'min', name: '最小值'}
+                ]
+            },
+        },
+        {
+            name:'置信度conf',
+            type:'bar',
+            data:{{ confList }},
+            markPoint : {
+                data : [
+                    {type : 'max', name: '最大值'},
+                    {type : 'min', name: '最小值'}
+                ]
+            },
+        }
+    ]
+};
+
+
+        myChart.setOption(option);
+    </script>
+</body>
+</html>

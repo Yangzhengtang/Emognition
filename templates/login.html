@@ -1,0 +1,50 @@
+{% extends 'sierra/base.html' %}
+
+{% block title %}Log in{% endblock title %}
+
+{% block content %}
+
+<!--================Get in Touch Area =================-->
+<section class="get_in_touch_area p_100">
+    <div class="container">
+        <div class="row get_touch_inner">
+            <div class="col-lg-6">
+                <div class="container form-login">
+                    {% for message in get_flashed_messages() %}
+                        <div class="alert alert-warning">
+                            <button type="button" class="close" data-dismiss="alert">&times;</button>
+                            {{ message }}
+                        </div>
+                    {% endfor %}
+                </div>
+                <form action="/login" method="post" class="form-login" style="max-width: 500px;padding: 15px;margin: 0 auto;">
+                    <div class="form-group">
+                        <label for="id_username">Username</label>
+                        <input type="text" class="form-control" name="username" id="id_username" placeholder="Please enter username" autofocus required>
+                    </div>
+                    <div class="form-group">
+                        <label for="id_password">Password</label>
+                        <input type="password" class="form-control" name="password" id="id_password" placeholder="Please enter password" required>
+                    </div>
+                    <div class="form-group">
+                        <button type="submit" class="btn btn-primary pull-right">登录</button>
+                    </div>
+                </form>
+            </div>
+            <div class="col-lg-6">
+                <div class="touch_details">
+                    <div class="l_title">
+                        <img src="img/icon/title-icon.png" alt="">
+                        <h6>Say hello</h6>
+                        <h2>Get in touch, send us an e-mail or call us</h2>
+                    </div>
+                    <p>Cras ex mauris, ornare eget pretium sit amet, dignissim et turpis. Nunc nec maximus dui, vel suscipit dolor. Donec elementum velit a orci facilisis rutrum.</p>
+                    <a href="tel:+02154749110"><h5>Call us now</h5></a>
+                    <a href="tel:+02154749110"><h4>+021 5474 9110</h4></a>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+{% endblock %}

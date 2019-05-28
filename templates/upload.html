@@ -1,0 +1,75 @@
+<head>
+    {{ dropzone.load_css() }}
+    {{ dropzone.style('border: 2px dashed #0087F7; margin: 10%') }}
+</head>
+{% extends 'sierra/base.html' %}
+{% block title %}Upload{% endblock title %}
+
+{% block content %}
+
+<!--================Get in Touch Area =================-->
+<section class="get_in_touch_area p_100">
+    <div class="container">
+        <div class="row get_touch_inner">
+            <div class="col-lg-6">
+			    <div class="container form-login col-lg-6">
+			        {% for message in get_flashed_messages() %}
+			            <div class="alert alert-warning">
+			                <button type="button" class="close" data-dismiss="alert">&times;</button>
+			                {{ message }}
+			            </div>
+			        {% endfor %}
+			    </div>
+			{#      <form method="post" role="form" action='/upload' enctype="multipart/form-data" class="form-upload" style="max-width: 500px;padding: 15px;margin: 0 auto;">#}
+			{#        <br>#}
+			{#          <label class="control-label">Please upload your data file </label>#}
+			{#        <br>#}
+			{#           <input name="uploaded_file" type="file" class="file">#}
+			{#        <br>#}
+			{#           <input type='submit' class="btn btn-lg btn-primary btn-block1" value='Upload'>#}
+			{##}
+			{##}
+			{#      </form>#}
+			<h2 style="text-align: center">Please upload data file in .dat</h2>
+			{{ dropzone.load_js() }}
+			{{ dropzone.create(action='/upload',method='post') }}
+            </div>
+            <div class="col-lg-6">
+			    <div class="touch_details">
+			        <div class="l_title">
+			            <img src="img/icon/title-icon.png" alt="">
+			            <h3>Please select your description</h3>
+			        </div>
+			        <li>
+                            <a class="dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                            Blog
+                            </a>
+                            <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
+                                <li class="nav-item"><a class="nav-link" href="blog.html">Blog</a></li>
+                                <li class="nav-item"><a class="nav-link" href="single-blog.html">Blog Details</a></li>
+                                <li class="nav-item active"><a class="nav-link" href="elements.html">Elements</a></li>
+                            </ul>
+
+
+                            <select class="dropdown-toggle" data-toggle="dropdown" href="#" id="navbarDropdown_" name="Discription">
+                            	<option value="0">Discription</option>
+                            </select>
+
+                            <ul class="dropdown-menu" aria-labelledby="navbarDropdown_">
+                                <option value="Red">Red</option>option>
+                           		<option value="Green">Green</option>option>  
+                            </ul>
+                            <select name="Item_1">
+
+                            	<option value="Red">Red</option>option>
+                           		<option value="Green">Green</option>option>        
+
+                           	</select>
+                    </li>
+			    </div>
+			</div>
+        </div>
+    </div>
+</section>
+
+{% endblock %}

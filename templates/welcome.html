@@ -1,0 +1,31 @@
+{% extends 'base.html' %}
+{% block title %}登录{% endblock title %}
+{% block styles %}
+    {{ super() }}
+    <!-- url_for函数，加载静态文件-->
+    <link href="{{ url_for('static', filename='login.css') }}" rel="stylesheet">
+{% endblock styles %}
+{% block navli %}
+    <ul class="nav navbar-nav navbar-right">
+        {% if session.is_login %}
+            <li><a href="/">您好！{{ session.name }}</a></li>
+            <li><a href="/logout">退出</a><li>
+            {% else %}
+            <li><a href="/">您好！</a></li>
+            <li class="active"><a href="#">登录</a></li>
+            <li><a href="/register">注册</a></li>
+        {% endif %}
+    </ul>
+{% endblock navli %}
+{% block content %}
+    <div class="container form-login">
+        {% for message in get_flashed_messages() %}
+            <div class="alert alert-warning">
+                <button type="button" class="close" data-dismiss="alert">&times;</button>
+                {{ message }}
+            </div>
+        {% endfor %}
+    </div>
+        <h1>Welcome! 基于隐私保护的关联规则挖掘</h1>
+
+{% endblock %}
