@@ -24,17 +24,26 @@ def hash_code(s, salt='huyz'):
     return md5.hexdigest()
 
 upload_img_count=0
-def get_img_path(): # 获取临时文件夹TmpUploadDir下的文件
-    global upload_img_count
+uploaded_img=[]
+
+def get_upload_img():   # 由于有.gitkeep文件，所以需要过滤一次，返回所有临时文件的名字列表
+    global uploaded_img
+    if uploaded_img!=[]:
+        return
+    uploaded_img=os.listdir("static/TmpUploadDir")
+    uploaded_img.remove('.gitkeep')
+    return
+
+def get_img_path(): # 加载下一张临时图片
+    global upload_img_count,uploaded_img
+    get_upload_img()    # 修改全局变量uploaded_img,如果uploaded_img为空则将临时文件夹下所有文件名加入uploaded_img
     if upload_img_count==0:
+        for img in uploaded_img:    # 删除临时文件
+            os.remove(os.path.join("static/TmpUploadDir",img))
         return '-1'
-    files=os.listdir("TmpUploadDir")    # files为列表
-    filepath=files[upload_img_count-1]
+    filepath=uploaded_img[upload_img_count-1]
     upload_img_count-=1
-    if filepath=='.gitkeep':
-        filepath=files[upload_img_count-1]
-        upload_img_count -= 1
-    return os.path.join('TmpUploadDir',filepath)
+    return os.path.join('static/TmpUploadDir',filepath)
 
 @app.route('/upload', methods = ['POST', 'GET'])
 def upload():
@@ -45,14 +54,14 @@ def upload():
         file = request.files['file']
         count=0
         fname=file.filename
-        while os.path.exists(os.path.join('TmpUploadDir', fname)):  # 防止文件名重复
+        while os.path.exists(os.path.join('static/TmpUploadDir', fname)):  # 防止文件名重复
             fname=file.filename[:file.filename.find('.')]+"_{:.0f}".format(count)+file.filename[file.filename.find('.'):]
             count+=1
-        file.save(os.path.join('TmpUploadDir', fname))  # 保存到临时文件夹
+        file.save(os.path.join('static/TmpUploadDir', fname))  # 保存到临时文件夹
         global upload_img_count
         upload_img_count+=1
-        print(upload_img_count)
-        print("Got the file.")
+        # print(upload_img_count)
+        # print("Got the file.")
     return render_template('upload.html')
 
 
@@ -140,14 +149,15 @@ def navigatefterSelection():
 
 @app.route('/finishUpload',methods=['POST','GET'])
 def finishUpload():
-    img_path=get_img_path()
-    print(img_path)
-    if img_path=='-1':
-        return render_template('uploadSuccess.html')
     if request.method=='POST':
         label=request.form.get('selected_label')
         print(label)
         img_path=get_img_path()
+        #########################这里应该完成插入数据库的操作######################
+    else:
+        img_path=get_img_path()
+    if img_path=='-1':
+        return render_template('uploadSuccess.html')
     label_list=['angry','happy','fear','sad']   # 之后为从数据库读取，各个用户所需标签不同
     return render_template('setLabel.html',label_list=label_list,img_path=img_path)
 

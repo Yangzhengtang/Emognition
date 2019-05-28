@@ -20,8 +20,7 @@
 			            </div>
 			        {% endfor %}
 			    </div>
-
-            <img src={{ img_path }} alt="">
+            <img src="{{ img_path }}" style="width: 400px;height: 400px;">
             </div>
             <div class="col-lg-6">
 			    <div class="touch_details">
@@ -37,7 +36,6 @@
                                     <td><input name="selected_label" value={{ label }} type="submit"> </td>
                                 </tr>
                             {% endfor %}
-                            <button type="submit" value="submit" class="btn submit_btn form-control" style="margin : 5%;">Commit! </button>
                         </div>
 					</form>
                     </li>
