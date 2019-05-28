@@ -150,7 +150,7 @@ def login():
             session['name'] = username
             return render_template('welcome.html')
         else:
-            flash('用户名或密码错误！')
+            flash('Bad credential')
             return render_template('login.html')
     return render_template('login.html')
 
@@ -175,6 +175,17 @@ def goHome():
 @app.route('/uploadSuccess')
 def uploadSuccess():
     return render_template('uploadSuccess.html')
+
+@app.route('/resultsAfterSelection', methods=['GET', 'POST'])
+def navigatefterSelection():
+    if request.method == 'POST':
+        print("here")
+        description = request.form.get('description')
+        selection = request.form.get('selection')
+        print("Got it")
+        print(description + selection)
+    return render_template('uploadSuccess.html')
+
 
 
 if __name__ == '__main__':
