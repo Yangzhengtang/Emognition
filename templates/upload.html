@@ -36,7 +36,7 @@
             </div>
             <div class="col-lg-6">
 			    <div class="touch_details">
-			        <div class="l_title">
+			        <div >
 			            <img src="static/img/icon/title-icon.png" alt="">
 			            <h3>Please select your description</h3>
 			        </div>
@@ -68,8 +68,10 @@
                        	</select>
 						-->
 
-                       	<form name="choice" action="resultsAfterSelection" method='POST'>
-						    <select name="description">
+                    <form name="choice" action="resultsAfterSelection" method='POST'>
+                    	<div style="width: 200px; height: 60px; border-radius: 5px; box-shadow: 0 0 5px #ccc; position: relative; margin : 5%;">
+						    <select name="description"  style="border: none; outline: none; width: 100%; height: 60px; line-height: 60px; appearance: none; -webkit-appearance: none; -moz-appearance: none; padding-left: 60px;">
+								<option value="description">description</option>   	
 						        <option value="angry">angry</option>
 						        <option value="fear">fear</option>        
 						        <option value="happy">happy</option>        
@@ -77,12 +79,16 @@
 						        <option value="sad">sad</option>        
 						        <option value="neutral">neutral</option>        
 						    </select>
-						    <select name="selection">
+						</div>
+						<div style="width: 200px; height: 60px; border-radius: 5px; box-shadow: 0 0 5px #ccc; position: relative; margin : 5%;">
+						    <select name="selection"  style="border: none; outline: none; width: 100%; height: 60px; line-height: 60px; appearance: none; -webkit-appearance: none; -moz-appearance: none; padding-left: 60px;">
+						    	<option value="option">option</option>
 						        <option value="train">train</option>
 						        <option value="test">test</option>        
 						    </select>
-						    <button type="submit">Commit!</button>
-						</form>
+						</div>
+						    <button type="submit" value="submit" class="btn submit_btn form-control" style="margin : 5%;">Commit! </button>
+					</form>
                     </li>
 			    </div>
 			</div>
