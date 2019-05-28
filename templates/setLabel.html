@@ -1,0 +1,50 @@
+<head>
+    {{ dropzone.load_css() }}
+    {{ dropzone.style('border: 2px dashed #0087F7; margin: 10%') }}
+</head>
+{% extends 'sierra/base.html' %}
+{% block title %}Upload{% endblock title %}
+
+{% block content %}
+
+<!--================Get in Touch Area =================-->
+<section class="get_in_touch_area p_100">
+    <div class="container">
+        <div class="row get_touch_inner">
+            <div class="col-lg-6">
+			    <div class="container form-login col-lg-6">
+			        {% for message in get_flashed_messages() %}
+			            <div class="alert alert-warning">
+			                <button type="button" class="close" data-dismiss="alert">&times;</button>
+			                {{ message }}
+			            </div>
+			        {% endfor %}
+			    </div>
+
+            <img src={{ img_path }} alt="">
+            </div>
+            <div class="col-lg-6">
+			    <div class="touch_details">
+			        <div >
+			            <img src="static/img/icon/title-icon.png" alt="">
+			            <h3>Please select your description</h3>
+			        </div>
+			        <li>
+                    <form name="choice" action="finishUpload" method='POST'>
+                    	<div style="width: 200px; height: 60px; border-radius: 5px; box-shadow: 0 0 5px #ccc; position: relative; margin : 5%;">
+                            {% for label in label_list %}
+                                <tr>
+                                    <td><input name="selected_label" value={{ label }} type="submit"> </td>
+                                </tr>
+                            {% endfor %}
+                            <button type="submit" value="submit" class="btn submit_btn form-control" style="margin : 5%;">Commit! </button>
+                        </div>
+					</form>
+                    </li>
+			    </div>
+			</div>
+        </div>
+    </div>
+</section>
+
+{% endblock %}

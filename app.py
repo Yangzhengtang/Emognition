@@ -12,6 +12,7 @@ app = Flask(__name__)
 app.config["SECRET_KEY"] = os.urandom(24)
 bootstrap=Bootstrap(app)
 mongo_address='127.0.0.1' #数据库所在ip地址
+client = MongoClient(host=mongo_address, port=27017)
 app.config['MAX_CONTENT_LENGTH'] = 512 * 1024 * 1024    # 最大上传文件大小
 dropzone = Dropzone(app)
 
@@ -22,6 +23,18 @@ def hash_code(s, salt='huyz'):
     md5.update(s.encode('utf-8'))
     return md5.hexdigest()
 
+upload_img_count=0
+def get_img_path(): # 获取临时文件夹TmpUploadDir下的文件
+    global upload_img_count
+    if upload_img_count==0:
+        return '-1'
+    files=os.listdir("TmpUploadDir")    # files为列表
+    filepath=files[upload_img_count-1]
+    upload_img_count-=1
+    if filepath=='.gitkeep':
+        filepath=files[upload_img_count-1]
+        upload_img_count -= 1
+    return os.path.join('TmpUploadDir',filepath)
 
 @app.route('/upload', methods = ['POST', 'GET'])
 def upload():
@@ -36,9 +49,10 @@ def upload():
             fname=file.filename[:file.filename.find('.')]+"_{:.0f}".format(count)+file.filename[file.filename.find('.'):]
             count+=1
         file.save(os.path.join('TmpUploadDir', fname))  # 保存到临时文件夹
-        print(type(file))
+        global upload_img_count
+        upload_img_count+=1
+        print(upload_img_count)
         print("Got the file.")
-        # return render_template('upload.html')
     return render_template('upload.html')
 
 
@@ -62,9 +76,7 @@ def register():
             if password != confirm_password:
                 flash('两次输入的密码不一致！')
                 return render_template('register.html', username=username)
-
-            client = MongoClient(host=mongo_address, port=27017)
-            db = client.user
+            db = client.users
             db.user.insert(insert_info)
             return redirect('/login')
         else:
@@ -81,8 +93,7 @@ def login():
         username = request.form.get('username')
         password = hash_code(request.form.get('password'))
         print("user: %s, password: %s" % (username, password))
-        client = MongoClient(host=mongo_address, port=27017)
-        db = client.user
+        db = client.users
         collection = db.user.find_one({'username':username})
         if collection['password'] == password:
             # 登录成功后存储session信息
@@ -125,6 +136,21 @@ def navigatefterSelection():
         print("Got it")
         print(description + selection)
     return render_template('sierra/base.html')
+
+
+@app.route('/finishUpload',methods=['POST','GET'])
+def finishUpload():
+    img_path=get_img_path()
+    print(img_path)
+    if img_path=='-1':
+        return render_template('uploadSuccess.html')
+    if request.method=='POST':
+        label=request.form.get('selected_label')
+        print(label)
+        img_path=get_img_path()
+    label_list=['angry','happy','fear','sad']   # 之后为从数据库读取，各个用户所需标签不同
+    return render_template('setLabel.html',label_list=label_list,img_path=img_path)
+
 
 if __name__ == '__main__':
     app.run(threaded=True,host="0.0.0.0")
