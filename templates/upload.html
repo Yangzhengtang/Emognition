@@ -20,16 +20,6 @@
 			            </div>
 			        {% endfor %}
 			    </div>
-			{#      <form method="post" role="form" action='/upload' enctype="multipart/form-data" class="form-upload" style="max-width: 500px;padding: 15px;margin: 0 auto;">#}
-			{#        <br>#}
-			{#          <label class="control-label">Please upload your data file </label>#}
-			{#        <br>#}
-			{#           <input name="uploaded_file" type="file" class="file">#}
-			{#        <br>#}
-			{#           <input type='submit' class="btn btn-lg btn-primary btn-block1" value='Upload'>#}
-			{##}
-			{##}
-			{#      </form>#}
 			<h2 style="text-align: center">Please upload data file in .dat</h2>
 			{{ dropzone.load_js() }}
 			{{ dropzone.create(action='/upload',method='post') }}

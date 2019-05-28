@@ -3,14 +3,16 @@ from pymongo import MongoClient
 from flask_bootstrap import Bootstrap
 import hashlib
 from flask_dropzone import Dropzone
+from gridfs import *
 import os
+
 
 app = Flask(__name__)
 # app.config.from_object(config)
 app.config["SECRET_KEY"] = os.urandom(24)
 bootstrap=Bootstrap(app)
-mongo_address='10.162.203.204' #数据库所在ip地址
-app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024
+mongo_address='127.0.0.1' #数据库所在ip地址
+app.config['MAX_CONTENT_LENGTH'] = 512 * 1024 * 1024    # 最大上传文件大小
 dropzone = Dropzone(app)
 
 
@@ -22,14 +24,32 @@ def hash_code(s, salt='huyz'):
 
 
 @app.route('/upload', methods = ['POST', 'GET'])
-def encryption():
-    # if request.method=='POST':
-    #     return render_template('login.html')
-    #     file = request.files.get('file')
-    #     file = request.files['uploaded_file']
-    #     print("Got the file.")
-    #     return render_template('uploadSuccess.html')
+def upload():
+    if request.method=='POST':  # POST表示提交了文件
+        # if not session.get('name'): # 验证登录
+        #     flash('please login first')
+        #     return render_template('login.html')
+        file = request.files['file']
+        count=0
+        fname=file.filename
+        while os.path.exists(os.path.join('TmpUploadDir', fname)):  # 防止文件名重复
+            fname=file.filename[:file.filename.find('.')]+"_{:.0f}".format(count)+file.filename[file.filename.find('.'):]
+            count+=1
+        file.save(os.path.join('TmpUploadDir', fname))  # 保存到临时文件夹
+        print(type(file))
+        print("Got the file.")
+        # return render_template('upload.html')
     return render_template('upload.html')
+
+
+
+    # client = MongoClient('localhost', 27017)
+    # db = client.Pic
+    # fs = GridFS(db, 'images')
+    # with open ('F:/测试数据/hehe.jpg'.decode('utf-8'),'rb') as myimage:
+    #     data=myimage.read()
+    #     id = fs.put(data,filename='first')
+
 
 @app.route('/register', methods=['GET', 'POST'])
 def register():
