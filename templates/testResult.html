@@ -1,17 +1,36 @@
 {% extends 'sierra/base.html' %}
+{% block title %}Test Result{% endblock title %}
 
-{% block title %}Upload success{% endblock title %}
-
-{% block styles %}
-    {{ super() }}
-    <link href="{{ url_for('static', filename='login.css') }}" rel="stylesheet">
-{% endblock styles %}
-
-{% block baseHeaderText %}
-    <h2>Thank you!</h2>
-    <p>Upload success</p>
+{% block extraCSS %}
+<link rel="stylesheet" href="static/css/checkboxUtil.css"/>
 {% endblock %}
 
 {% block content %}
+
+<!--================Get in Touch Area =================-->
+<section class="get_in_touch_area p_100">
+    <div class="container">
+        <div class="row get_touch_inner">
+            <div class="col-lg-6">
+			    <div class="container form-login col-lg-6">
+			        {% for message in get_flashed_messages() %}
+			            <div class="alert alert-warning">
+			                <button type="button" class="close" data-dismiss="alert">&times;</button>
+			                {{ message }}
+			            </div>
+			        {% endfor %}
+			    </div>
+            <img src="{{ img_path }}" style="width: 400px;height: 400px;">
+            </div>
+            <div class="col-lg-6">
+                    <form name="choice" action="showTestResult" method='POST'>
+                        <div class="checkbox-container">
+                            <input type="submit" value="Commit" class="btn btn-primary">Next Result</input>
+                        </div>
+                    </form>
+			</div>
+        </div>
+    </div>
+</section>
 
 {% endblock %}

@@ -27,7 +27,7 @@ Picture_Collection = 'pictures'
 client = MongoClient(host=Mongo_Addr, port=Mongo_Port)
 # client.web.authenticate(Mongo_User, Mongo_Password)     # Login
 gfs=GFS(Mongo_Database, Picture_Collection, client)     #   gridfs initialize
-file_db_handler,file_table_handler = Mongo_Database,Picture_Collection
+file_db_handler,file_table_handler = gfs.createDB()
 
 def hash_code(s, salt='huyz'):
     md5 = hashlib.md5()
@@ -152,57 +152,9 @@ def goHome():
 def uploadSuccess():
     return render_template('uploadSuccess.html')
 
-
-@app.route('/finishSetting',methods=['POST','GET'])
-def finishSetting():
-    if request.method == 'POST':    #   Create new model, saved in mongo
-        #   if(session['is_login'] = True):
-        selected_labels = request.form.getlist('selected_label')
-        print(selected_labels)
-        uid = str(os.urandom(24))
-        #   query = {'labels': selected_labels, 'uid': uid, 'user': session['name']}
-        query = {'labels': selected_labels, 'uid': uid}
-        client.web.models.insert(query)
-        #session[uid] = uid
-        #session[first_entry] = True
-        return redirect(url_for('newFinishUpload',uid = uid))
-
 img_path = '-1'
-@app.route('/finishUpload',methods=['POST','GET'])
-def finishUpload():
-    global img_path
-    if request.method == 'POST':
-        #print(str(request.form) + str(type(request.form)))
-        labels = request.form.getlist('selected_label')
-        #label = request.form.get('selected_label')
-        print(labels)
-        query = {'filename': img_path}
-        id = gfs.insertFile(file_db_handler, img_path, query, labels)  # 插入文件
-<<<<<<< HEAD
-        #   the count of each label should +1
-        for label in labels:
-            condition = {'emo': label}
-            result = client.web.labels.find_one(condition)
-            result['count'] += 1
-            client.web.labels.update(condition, result)
-
-        img_path = get_img_path()
-=======
-        img_path = get_img_path("static/TmpUploadDir")
->>>>>>> origin/master
-    else:
-        img_path = get_img_path("static/TmpUploadDir")
-    if img_path == '-1':
-        clear_imgs()
-        img_path = '-1'
-        return render_template('uploadSuccess.html')
-
-    label_list = get_values_from_db('labels', 'emo')
-    return render_template('setLabel.html', label_list=label_list, img_path=img_path)
-
-
-@app.route('/newFinishUpload',methods=['POST','GET'])
-def newFinishUpload():
+@app.route('/FinishUpload',methods=['POST','GET'])
+def FinishUpload():
     global img_path
     if request.method == 'POST':  
         selected_label_before = request.form.getlist('selected_label_before')   #   args from setting.html
@@ -213,14 +165,14 @@ def newFinishUpload():
         if(selected_label_after!=[]):    #   from setLabel.html
             print("Run 1")
             query = {'filename': img_path}
-            id = gfs.insertFile(file_db_handler, img_path, query, selected_label_after)  # 插入文件
+            id = gfs.insertFile(file_db_handler, img_path, query, selected_label_after[0])  # 插入照片
             #   the count of each label should +1
             for label in selected_label_after:
                 condition = {'emo': label}
                 result = client.web.labels.find_one(condition)
                 result['count'] += 1
             client.web.labels.update(condition, result)
-            img_path = get_img_path()
+            img_path = get_img_path("static/TmpUploadDir")
             if img_path == '-1':
                 clear_imgs()
                 img_path = '-1'
@@ -230,7 +182,7 @@ def newFinishUpload():
 
         else:   #   from setting.html
             print("Run 2")
-            img_path = get_img_path()
+            img_path = get_img_path("static/TmpUploadDir")
             uid = str(os.urandom(24))
             query = {'labels': selected_label_before, 'uid': uid}
             client.web.models.insert(query)
@@ -266,12 +218,6 @@ def setting():
         label_list = get_values_from_db('labels', 'emo')
         return render_template('setting.html', label_list=label_list)
 
-
-
-@app.route('/navigateTrain', methods=['GET', 'POST'])
-def navigateTrain():
-    label_list = get_values_from_db('labels', 'emo')
-    return render_template('navigateTrain.html', label_list=label_list)
 
 @app.route('/navigateTest',methods=['GET','POST'])
 def navigateTest():
@@ -330,9 +276,13 @@ def recognize():
     recog=Recognition(tmp_save_json,tmp_save_model,tmp_save_xml)
     for img in test_img:
         recog.recognize(os.path.join(uploaded_path,img),os.path.join(test_result_path,"marked_"+img))
-    print('ok')
-
     return render_template('testResult.html')
+
+@app.route('/showTestResult',methods=['GET', 'POST'])
+def showTestResult():
+    result_pic=os.listdir('TmpResult')
+    result_pic.remove('.gitkeep')
+    
 if __name__ == '__main__':
     app.run(threaded=True,host="0.0.0.0")
 
