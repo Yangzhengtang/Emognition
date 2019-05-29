@@ -276,13 +276,23 @@ def recognize():
     recog=Recognition(tmp_save_json,tmp_save_model,tmp_save_xml)
     for img in test_img:
         recog.recognize(os.path.join(uploaded_path,img),os.path.join(test_result_path,"marked_"+img))
+    result_list=os.listdir('static/TmpResult')
+    result_list.remove('.gitkeep')
+    session['result']=result_list
     return render_template('testResult.html')
 
 @app.route('/showTestResult',methods=['GET', 'POST'])
 def showTestResult():
-    result_pic=os.listdir('TmpResult')
-    result_pic.remove('.gitkeep')
-    
+    print(session['result'])
+    result=session['result']
+    result_pic=result.pop()
+    session['result']=result
+    print(session['result'])
+    os.remove(os.path.join('static/TmpResult',result_pic))
+    if result==[]:
+        return render_template('testSuccess.html')
+    return render_template('testResult.html')
+
 if __name__ == '__main__':
     app.run(threaded=True,host="0.0.0.0")
 
