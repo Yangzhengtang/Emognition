@@ -1,4 +1,4 @@
-from flask import Flask,request,render_template,redirect,flash,session,get_flashed_messages
+from flask import Flask,request,render_template,redirect,flash,session,get_flashed_messages,url_for
 from pymongo import MongoClient
 from flask_bootstrap import Bootstrap
 import hashlib
@@ -151,6 +151,21 @@ def goHome():
 def uploadSuccess():
     return render_template('uploadSuccess.html')
 
+
+@app.route('/finishSetting',methods=['POST','GET'])
+def finishSetting():
+    if request.method == 'POST':    #   Create new model, saved in mongo
+        #   if(session['is_login'] = True):
+        selected_labels = request.form.getlist('selected_label')
+        print(selected_labels)
+        uid = str(os.urandom(24))
+        #   query = {'labels': selected_labels, 'uid': uid, 'user': session['name']}
+        query = {'labels': selected_labels, 'uid': uid}
+        client.web.models.insert(query)
+        #session[uid] = uid
+        #session[first_entry] = True
+        return redirect(url_for('newFinishUpload',uid = uid))
+
 img_path = '-1'
 @app.route('/finishUpload',methods=['POST','GET'])
 def finishUpload():
@@ -180,6 +195,51 @@ def finishUpload():
 
     label_list = get_values_from_db('labels', 'emo')
     return render_template('setLabel.html', label_list=label_list, img_path=img_path)
+
+
+@app.route('/newFinishUpload',methods=['POST','GET'])
+def newFinishUpload():
+    global img_path
+    if request.method == 'POST':  
+        selected_label_before = request.form.getlist('selected_label_before')   #   args from setting.html
+        selected_label_after = request.form.getlist('selected_label_after')     #   args from setLabel.html
+        print(selected_label_before)
+        print(selected_label_after)
+
+        if(selected_label_after!=[]):    #   from setLabel.html
+            print("Run 1")
+            query = {'filename': img_path}
+            id = gfs.insertFile(file_db_handler, img_path, query, selected_label_after)  # 插入文件
+            #   the count of each label should +1
+            for label in selected_label_after:
+                condition = {'emo': label}
+                result = client.web.labels.find_one(condition)
+                result['count'] += 1
+            client.web.labels.update(condition, result)
+            img_path = get_img_path()
+            if img_path == '-1':
+                clear_imgs()
+                img_path = '-1'
+                return render_template('uploadSuccess.html')
+            show_label_list = client.web.models.find_one({'uid':session['uid']})['labels']
+            return render_template('setLabel.html', label_list=show_label_list, img_path=img_path)
+
+        else:   #   from setting.html
+            print("Run 2")
+            img_path = get_img_path()
+            uid = str(os.urandom(24))
+            query = {'labels': selected_label_before, 'uid': uid}
+            client.web.models.insert(query)
+            session['uid'] = uid
+            if img_path == '-1':
+                clear_imgs()
+                img_path = '-1'
+                return render_template('uploadSuccess.html')
+            show_label_list = client.web.models.find_one({'uid':session['uid']})['labels']
+            return render_template('setLabel.html', label_list=show_label_list, img_path=img_path)
+    else:
+        print("WHAT")
+
 
 @app.route('/progress')
 def progressPage():

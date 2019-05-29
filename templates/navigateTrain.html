@@ -24,7 +24,7 @@
             <div class="container">                
                 <div name="choice" action="finishUpload" method='POST'>
                     {% for label in label_list %}
-                        <button type="submit" value={{ label }} class="btn submit_btn form-control" name="selected_label">{{ label }}</button>
+                        <button type="submit" value={{ label }} class="btn submit_btn form-control" name="selected_label_before">{{ label }}</button>
                     {% endfor %}
                 </div>
             </div>

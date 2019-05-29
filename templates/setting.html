@@ -1,6 +1,9 @@
 {% extends 'sierra/base.html' %}
 {% block title %}Setting{% endblock title %}
 
+{% block baseHeaderText %}{% endblock %}
+
+
 {% block extraCSS %}
 <link rel="stylesheet" href="static/css/checkboxUtil.css"/>
 {% endblock %}
@@ -9,50 +12,50 @@
 
 <!--================Get in Touch Area =================-->
 <section class="get_in_touch_area p_100">
-    <div class="container">
-        <div class="row get_touch_inner">
-            <div class="col-lg-6">
-	            <form action="/navigateAdditionLabel" method="post" class="form-login" style="max-width: 500px;padding: 15px;margin: 0 auto;">
-	                <div class="form-group">
-	                    <label for="id_labels">New labels</label>
-	                    <input type="text" class="form-control" name="additionLabels" id="id_labels" placeholder="Please enter labels" autofocus >
-	                </div>
-	                <div class="form-group">
-	                    <button type="submit" class="btn btn-primary">Add</button>
-	                </div>
-	            </form>
-	            <div class="form-group">
-	            <a class="solid_btn" href="setting">Next</a>
-	            </div>
-            </div>
-            <div class="col-lg-6">
-			    <div class="touch_details">
-			        <div >
-			            <img src="static/img/icon/title-icon.png" alt="">
-			            <h3>Please select your description</h3>
-			        </div>
-			    </div>
 
-                <div class="card">
-                    <form name="choice" action="finishUpload" method='POST'>
-                        {% for label in label_list %}
-                            <div class="checkbox-container">
-                                <label class="checkbox-label">
-                                    <input type="checkbox" name="selected_label" value={{ label }}>
-                                    <span class="checkbox-custom rectangular"></span>
-                                </label>
-                                <div class="input-title">{{ label }}</div>
-                            </div>
-                        {% endfor %}
-                          <!-- <div class="clear"></div> -->
-                        <div class="checkbox-container">
-                            <input type="submit" value="Commit" class="btn btn-primary"></input>
-                        </div>
-                    </form>
+	<div class="container">
+	    <div class="touch_details">
+	        <div >
+	            <img src="static/img/icon/title-icon.png" alt="">
+	            <h3>Please select your description</h3>
+	        </div>
+	    </div>
+
+        <div class="card">
+            <form name="choice" action="/newFinishUpload" method='POST'>
+                {% for label in label_list %}
+                    <div class="checkbox-container">
+                        <label class="checkbox-label">
+                            <input type="checkbox" name="selected_label_before" value={{ label }}>
+                            <span class="checkbox-custom rectangular"></span>
+                        </label>
+                        <div class="input-title">{{ label }}</div>
+                    </div>
+                {% endfor %}
+                  <!-- <div class="clear"></div> -->
+                <div class="checkbox-container">
+                    <input type="submit" value="Commit" class="btn btn-primary"></input>
                 </div>
-			</div>
+            </form>
         </div>
+	</div>
+
+	<div class="container">
+        <form action="/navigateAdditionLabel" method="post" class="form-login" style="max-width: 500px;padding: 15px;margin: 0 auto;">
+            <div class="form-group">
+                <label for="id_labels">New labels</label>
+                <input type="text" class="form-control" name="additionLabels" id="id_labels" placeholder="Please enter labels" autofocus >
+            </div>
+            <div class="form-group">
+                <button type="submit" class="btn btn-primary">Add</button>
+            </div>
+        </form>
     </div>
+<!--
+    <div style="max-width: 500px;padding: 15px;margin: 0 auto;">
+    	<a class="solid_btn" href="setting">Next</a>
+    </div>
+-->
 </section>
 
 {% endblock %}
