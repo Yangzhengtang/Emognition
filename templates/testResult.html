@@ -20,12 +20,12 @@
 			            </div>
 			        {% endfor %}
 			    </div>
-            <img src="{{ img_path }}" style="width: 400px;height: 400px;">
+            <img src="static/TmpResult/{{ session.result[-1] }}" style="width: 400px;height: 400px;">
             </div>
             <div class="col-lg-6">
                     <form name="choice" action="showTestResult" method='POST'>
                         <div class="checkbox-container">
-                            <input type="submit" value="Commit" class="btn btn-primary">Next Result</input>
+                            <input type="submit" value='Next Result' class="btn btn-primary">
                         </div>
                     </form>
 			</div>
