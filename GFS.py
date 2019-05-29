@@ -22,7 +22,7 @@ class GFS(object):
             with open(filePath,'rb') as fileObj:
                 data = fileObj.read()
                 ObjectId = fs.put(data,filename = filePath.split('/')[-1],label=label)
-                print(ObjectId)
+                #print(ObjectId)
                 fileObj.close()
             return ObjectId
  

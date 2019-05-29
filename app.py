@@ -61,6 +61,15 @@ def get_img_path(): # 加载下一张临时图片
     upload_img_count-=1
     return os.path.join('static/TmpUploadDir',filepath)
 
+def get_values_from_db(table, field):
+    value_list = []
+    db = client.web
+    results = db[table].find()
+    for result in results:
+        #print(result)
+        value_list.append(result[field])
+    return value_list
+
 @app.route('/upload', methods = ['POST', 'GET'])
 def upload():
     if request.method=='POST':  # POST表示提交了文件
@@ -154,6 +163,13 @@ def finishUpload():
         print(labels)
         query = {'filename': img_path}
         id = gfs.insertFile(file_db_handler, img_path, query, labels)  # 插入文件
+        #   the count of each label should +1
+        for label in labels:
+            condition = {'emo': label}
+            result = client.web.labels.find_one(condition)
+            result['count'] += 1
+            client.web.labels.update(condition, result)
+
         img_path = get_img_path()
     else:
         img_path = get_img_path()
@@ -162,37 +178,49 @@ def finishUpload():
         img_path = '-1'
         return render_template('uploadSuccess.html')
 
-    label_list = []
-    db = client.web
-    labels_results = db.labels.find()
-    for result in labels_results:
-        print(result)
-        label_list.append(result['emo'])
-
-    #label_list = ['angry', 'happy', 'fear', 'sad','surprise','neural']  # 之后为从数据库读取，各个用户所需标签不同
+    label_list = get_values_from_db('labels', 'emo')
     return render_template('setLabel.html', label_list=label_list, img_path=img_path)
+
+@app.route('/progress')
+def progressPage():
+    db = client.web
+    label_list = get_values_from_db('labels', 'emo')
+    return render_template('progress.html', label_list=label_list)
+
+@app.route('/setting', methods=['GET', 'POST'])
+def setting():
+    if request.method == 'POST': #   Refresh
+        label_list = get_values_from_db('labels', 'emo')
+        additionLabels = request.form.get('additionLabels')
+        print("Got it: " + additionLabels)
+        if(additionLabels!='' and (additionLabels not in label_list)): #   Got new input
+            db = client.web
+            db.labels.insert({'emo': additionLabels, 'count': 0})
+            label_list.append(additionLabels)
+        return render_template('setting.html', label_list=label_list)
+    else:
+        label_list = get_values_from_db('labels', 'emo')
+        return render_template('setting.html', label_list=label_list)
+
+
 
 @app.route('/navigateTrain', methods=['GET', 'POST'])
 def navigateTrain():
-    label_list = []
-    db = client.web
-    labels_results = db.labels.find()
-    for result in labels_results:
-        print(result)
-        label_list.append(result['emo'])
-    return render_template('navigateTrain.html', label_list=label_list, img_path=img_path)
+    label_list = get_values_from_db('labels', 'emo')
+    return render_template('navigateTrain.html', label_list=label_list)
 
 @app.route('/navigateAdditionLabel', methods=['GET', 'POST'])
 def navigateAdditionLabel():
-    if request.method == 'POST':
+    if request.method == 'POST':    #   Refresh
         #   Todo: add multiple labels
+        label_list = get_values_from_db('labels', 'emo')
         additionLabels = request.form.get('additionLabels')
         print("Got it: " + additionLabels)
-        if(additionLabels!=''): #   Got input
+        if(additionLabels!='' and (additionLabels not in label_list)): #   Got new input
             db = client.web
-            #db.labels.update({'emo' : additionLabels}, { $setOnInsert:{'emo' : additionLabels}}, {upsert:true})
-            db.labels.insert({'emo' : additionLabels})
-    return redirect('/finishUpload')
+            db.labels.insert({'emo': additionLabels, 'count': 0})
+            label_list.append(additionLabels)
+        return render_template('setting.html', label_list=label_list)
 
 
 if __name__ == '__main__':

@@ -2,10 +2,9 @@
 
 {% block title %}Upload success{% endblock title %}
 
-{% block styles %}
-    {{ super() }}
-    <link href="{{ url_for('static', filename='login.css') }}" rel="stylesheet">
-{% endblock styles %}
+{% block extraCSS %}
+	<meta http-equiv="refresh" content="1.5;url=progress" /> 
+{% endblock extraCSS %}
 
 {% block baseHeaderText %}
     <h2>Thank you!</h2>

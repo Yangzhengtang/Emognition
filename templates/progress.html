@@ -1,0 +1,42 @@
+{% extends 'uploadSuccess.html' %}
+
+{% block title %}Progress{% endblock title %}
+
+{% block extraCSS %}    {% endblock extraCSS %}
+
+{% block content %}
+<section class="we_company_area p_100">
+    <div class="container">
+        <div class="row company_inner">
+            <div class="col-lg-6">
+                <div class="left_company_text">
+                    <div class="l_title">
+                        <img src="img/icon/title-icon.png" alt="">
+                        <h6>Discover the features</h6>
+                        <h2>We are a <span>Gibraltar</span> based Company</h2>
+                    </div>
+                    <p>Etiam nec odio vestibulum est mattis effic iturut magna. Pellentesque sit am et tellus blandit. Etiam nec odio vestibul.Cras ex mauris, ornare eget pretium sit amet, dignissim et turpis. Nunc nec maximus dui, vel suscipit dolor. Donec elementum velit a orci facilisis rutrum. Nam convallis vel erat id dictum. Sed ut risus in orci convallis viverra a eget nisi. Aenean pellentesque elit vitae eros dignissim ultrices. </p>
+                </div>
+            </div>
+            <div class="col-lg-6">
+                <div class="company_skill">
+                    <p>Etiam nec odio vestibulum est mattis effic iturut magna. Pellente sque sit am et tellus blandit. Etiam nec odio vestibul.</p>
+                    <div class="our_skill_inner">
+                        {% for label in label_list %}
+                            <div class="single_skill">
+                                <h3>{{ label["emo"] }}</h3>
+                                <div class="progress" data-value={{ label["emo"] }}>
+                                    <div class="progress-bar" style="width: {{ label["count"] }}%;">
+                                        <div class="progress_parcent"><span class="counter">70</span>%</div>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+{% endblock %}
