@@ -6,7 +6,7 @@ from flask_dropzone import Dropzone
 from gridfs import *
 import os
 from GFS import *
-
+import types 
 
 app = Flask(__name__)
 # app.config.from_object(config)
@@ -148,10 +148,12 @@ def finishUpload():
     global img_path
 
     if request.method == 'POST':
-        label = request.form.get('selected_label')
-        print(label)
+        #print(str(request.form) + str(type(request.form)))
+        labels = request.form.getlist('selected_label')
+        #label = request.form.get('selected_label')
+        print(labels)
         query = {'filename': img_path}
-        id = gfs.insertFile(file_db_handler, img_path, query, label)  # 插入文件
+        id = gfs.insertFile(file_db_handler, img_path, query, labels)  # 插入文件
         img_path = get_img_path()
     else:
         img_path = get_img_path()
@@ -186,9 +188,10 @@ def navigateAdditionLabel():
         #   Todo: add multiple labels
         additionLabels = request.form.get('additionLabels')
         print("Got it: " + additionLabels)
-        db = client.web
-        #db.labels.update({'emo' : additionLabels}, { $setOnInsert:{'emo' : additionLabels}}, {upsert:true})
-        db.labels.insert({'emo' : additionLabels})
+        if(additionLabels!=''): #   Got input
+            db = client.web
+            #db.labels.update({'emo' : additionLabels}, { $setOnInsert:{'emo' : additionLabels}}, {upsert:true})
+            db.labels.insert({'emo' : additionLabels})
     return redirect('/finishUpload')
 
 

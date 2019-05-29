@@ -1,6 +1,10 @@
 {% extends 'sierra/base.html' %}
 {% block title %}Upload{% endblock title %}
 
+{% block extraCSS %}
+<link rel="stylesheet" href="static/css/checkboxUtil.css"/>
+{% endblock %}
+
 {% block content %}
 
 <!--================Get in Touch Area =================-->
@@ -24,6 +28,7 @@
 			            <img src="static/img/icon/title-icon.png" alt="">
 			            <h3>Please select your description</h3>
 			        </div>
+                    <!--
 			        <li>
                         <div class="container">                
                             <form name="choice" action="finishUpload" method='POST'>
@@ -32,11 +37,27 @@
                                 {% endfor %}
         					</form>
                         </div>
-                        <!--<div class="container">
-                            <a class="more_btn" href="home" >Cancel</a>
-                        </div>-->
                     </li>
+                    -->
 			    </div>
+
+                <div class="card">
+                    <form name="choice" action="finishUpload" method='POST'>
+                        {% for label in label_list %}
+                            <div class="checkbox-container">
+                                <label class="checkbox-label">
+                                    <input type="checkbox" name="selected_label" value={{ label }}>
+                                    <span class="checkbox-custom rectangular"></span>
+                                </label>
+                                <div class="input-title">{{ label }}</div>
+                            </div>
+                        {% endfor %}
+                          <!-- <div class="clear"></div> -->
+                        <div class="checkbox-container">
+                            <input type="submit" value="Commit" class="btn btn-primary"></input>
+                        </div>
+                    </form>
+                </div>
 			</div>
         </div>
     </div>
