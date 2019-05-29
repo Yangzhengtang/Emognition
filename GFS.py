@@ -14,14 +14,14 @@ class GFS(object):
         file_table = db[self.file_table]
         return (db,file_table)
  
-    def insertFile(self,db,filePath,query): #将文件存入数据表
+    def insertFile(self,db,filePath,query,label): #将文件存入数据表
         fs = GridFS(db,self.file_table)
         if fs.exists(query):
             print('已经存在该文件')
         else:
             with open(filePath,'rb') as fileObj:
                 data = fileObj.read()
-                ObjectId = fs.put(data,filename = filePath.split('/')[-1])
+                ObjectId = fs.put(data,filename = filePath.split('/')[-1],label=label)
                 print(ObjectId)
                 fileObj.close()
             return ObjectId

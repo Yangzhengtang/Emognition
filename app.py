@@ -24,7 +24,7 @@ Mongo_Password = 'fuckingApp'
 Picture_Collection = 'pictures'
 
 client = MongoClient(host=Mongo_Addr, port=Mongo_Port)
-client.web.authenticate(Mongo_User, Mongo_Password)     # Login 
+# client.web.authenticate(Mongo_User, Mongo_Password)     # Login
 gfs=GFS(Mongo_Database, Picture_Collection, client)     #   gridfs initialize
 (file_db_handler,file_table_handler) = gfs.createDB()
 
@@ -48,7 +48,8 @@ def get_upload_img():   # 由于有.gitkeep文件，所以需要过滤一次，�
 def clear_imgs():
     global upload_img_count,uploaded_img
     for img in uploaded_img:    # 删除临时文件
-            os.remove(os.path.join("static/TmpUploadDir",img))
+        os.remove(os.path.join("static/TmpUploadDir",img))
+    uploaded_img=[]
     print("Clear temp pics")
 
 def get_img_path(): # 加载下一张临时图片
@@ -155,36 +156,24 @@ img_path = '-1'
 label = '-1'
 @app.route('/finishUpload',methods=['POST','GET'])
 def finishUpload():
-    global img_path, label, upload_img_count, uploaded_img
+    global img_path
 
-    if request.method=='POST':
+    if request.method == 'POST':
         label = request.form.get('selected_label')
         print(label)
-
-    temp_img_path=get_img_path()
-    print("Got temp:%s" % temp_img_path)
-
-    if temp_img_path=='-1':
-        temp_img_path=get_img_path()
-        print("Here is File Path! %s" % img_path)
-        query = {'filename': img_path}  ####
-        id = gfs.insertFile(file_db_handler, img_path,query)    #插入文件
-        db = client.web
-        db.labels.insert({'label':label, 'id':id})  
+        query = {'filename': img_path}
+        id = gfs.insertFile(file_db_handler, img_path, query, label)  # 插入文件
+        img_path = get_img_path()
+    else:
+        img_path = get_img_path()
+    if img_path == '-1':
         clear_imgs()
         img_path = '-1'
-        label = '-1'
-        upload_img_count=0
-        uploaded_img=[]
         return render_template('uploadSuccess.html')
-
-    else:
-        img_path = temp_img_path
-
+    label_list = ['angry', 'happy', 'fear', 'sad','surprise','neural']  # 之后为从数据库读取，各个用户所需标签不同
+    return render_template('setLabel.html', label_list=label_list, img_path=img_path)
 
 
-    label_list=['angry','happy','fear','sad', 'surprise', 'neural']   # 之后为从数据库读取，各个用户所需标签不同
-    return render_template('setLabel.html',label_list=label_list,img_path=img_path)
 
 
 if __name__ == '__main__':
