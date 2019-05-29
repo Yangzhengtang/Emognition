@@ -1,0 +1,29 @@
+{% extends 'sierra/base.html' %}
+
+{% block title %}Navigation{% endblock title %}
+
+{% block content %}
+<section class="get_in_touch_area p_100">
+    <div class="container">
+        <div class="container form-login col-lg-9">
+            <img src="static/img/icon/title-icon.png" alt="">
+                    <h3>Available models</h3>
+                    <h6>Please select one models to test your uploaded photo </h6>
+                <form action="/testResult" method="post" class="form-login" style="max-width: 1000px;padding: 15px;margin: 0;">
+                    <div class="form-group">
+                        <select name="model_info"  style="width: 700px; height: 60px; line-height: 60px;padding-left: 30px;">
+							{% for model_info in model_info_list %}
+                                <option name='model_info' value={{ model_info[0] }}>model_name:{{ model_info[1] }} model_labels:{{ model_info[2] }}</option>
+                            {% endfor %}
+						    </select>
+                    </div>
+                    <div class="form-group">
+                        <button type="submit" class="btn btn-primary">commit</button>
+                    </div>
+                </form>
+        </div>
+    </div>
+</section>
+
+
+{% endblock %}

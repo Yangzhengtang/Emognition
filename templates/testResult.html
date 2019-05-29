@@ -1,0 +1,17 @@
+{% extends 'sierra/base.html' %}
+
+{% block title %}Upload success{% endblock title %}
+
+{% block styles %}
+    {{ super() }}
+    <link href="{{ url_for('static', filename='login.css') }}" rel="stylesheet">
+{% endblock styles %}
+
+{% block baseHeaderText %}
+    <h2>Thank you!</h2>
+    <p>Upload success</p>
+{% endblock %}
+
+{% block content %}
+
+{% endblock %}

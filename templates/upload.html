@@ -20,11 +20,11 @@
 		        {% endfor %}				
 		    	<h2 style="text-align: center">Please upload data file here</h2>
 				{{ dropzone.load_js() }}
-				{{ dropzone.create(action='/upload',method='post') }}
+				{{ dropzone.create(action='/upload',method='POST') }}
 				<div class="container">
 				    <div class="touch_details">
 				    	<a class="more_btn" href="setting">Train</a>
-				    	<a class="more_btn" href="test">Test</a>
+				    	<a class="more_btn" href="navigateTest">Test</a>
 				    </div>
 				</div>
 				<!--<div class="container">
