@@ -200,7 +200,12 @@ def FinishUpload():
 @app.route('/progress')
 def progressPage():
     db = client.web
-    label_list = get_values_from_db('labels', 'emo')
+    result_list = db.labels.find()
+    label_list = []
+    for result in result_list:
+        print(result)
+        result.pop('_id')
+        label_list.append(result)
     return render_template('progress.html', label_list=label_list)
 
 @app.route('/setting', methods=['GET', 'POST'])
