@@ -3,9 +3,10 @@ from pymongo import MongoClient
 from flask_bootstrap import Bootstrap
 import hashlib
 from flask_dropzone import Dropzone
-from gridfs import *
+from bson.objectid import ObjectId
 import os
 from GFS import *
+from Recognize.Recognize import Recognition
 import types 
 
 app = Flask(__name__)
@@ -26,7 +27,7 @@ Picture_Collection = 'pictures'
 client = MongoClient(host=Mongo_Addr, port=Mongo_Port)
 # client.web.authenticate(Mongo_User, Mongo_Password)     # Login
 gfs=GFS(Mongo_Database, Picture_Collection, client)     #   gridfs initialize
-(file_db_handler,file_table_handler) = gfs.createDB()
+file_db_handler,file_table_handler = Mongo_Database,Picture_Collection
 
 def hash_code(s, salt='huyz'):
     md5 = hashlib.md5()
@@ -37,11 +38,11 @@ def hash_code(s, salt='huyz'):
 upload_img_count=0
 uploaded_img=[]
 
-def get_upload_img():   # 由于有.gitkeep文件，所以需要过滤一次，返回所有临时文件的名字列表
+def get_upload_img(path):   # 由于有.gitkeep文件，所以需要过滤一次，返回所有临时文件的名字列表
     global uploaded_img
     if uploaded_img!=[]:
         return
-    uploaded_img=os.listdir("static/TmpUploadDir")
+    uploaded_img=os.listdir(path)
     uploaded_img.remove('.gitkeep')
     return
 
@@ -52,9 +53,9 @@ def clear_imgs():
     uploaded_img=[]
     print("Clear temp pics")
 
-def get_img_path(): # 加载下一张临时图片
+def get_img_path(path): # 加载下一张临时图片
     global upload_img_count,uploaded_img
-    get_upload_img()    # 修改全局变量uploaded_img,如果uploaded_img为空则将临时文件夹下所有文件名加入uploaded_img
+    get_upload_img(path)    # 修改全局变量uploaded_img,如果uploaded_img为空则将临时文件夹下所有文件名加入uploaded_img
     if upload_img_count==0:
         return '-1'
     filepath=uploaded_img[upload_img_count-1]
@@ -64,9 +65,9 @@ def get_img_path(): # 加载下一张临时图片
 @app.route('/upload', methods = ['POST', 'GET'])
 def upload():
     if request.method=='POST':  # POST表示提交了文件
-        # if not session.get('name'): # 验证登录
-        #     flash('please login first')
-        #     return render_template('login.html')
+        if not session.get('is_login'): # 验证登录
+            flash('please login first')
+            return render_template('login.html')
         file = request.files['file']
         count=0
         fname=file.filename
@@ -86,7 +87,7 @@ def register():
         username = request.form.get('username')
         password = hash_code(request.form.get('password'))
         confirm_password = hash_code(request.form.get('confirm'))
-        insert_info = {'username':username,'password':password}
+        insert_info = {'username':username,'password':password,'models':['5cee6b9f53fbf62c37e49576']}   # 默认添加default model的ID
         if username and password and confirm_password:
             if password != confirm_password:
                 flash('两次输入的密码不一致！')
@@ -146,7 +147,6 @@ img_path = '-1'
 @app.route('/finishUpload',methods=['POST','GET'])
 def finishUpload():
     global img_path
-
     if request.method == 'POST':
         #print(str(request.form) + str(type(request.form)))
         labels = request.form.getlist('selected_label')
@@ -154,9 +154,9 @@ def finishUpload():
         print(labels)
         query = {'filename': img_path}
         id = gfs.insertFile(file_db_handler, img_path, query, labels)  # 插入文件
-        img_path = get_img_path()
+        img_path = get_img_path("static/TmpUploadDir")
     else:
-        img_path = get_img_path()
+        img_path = get_img_path("static/TmpUploadDir")
     if img_path == '-1':
         clear_imgs()
         img_path = '-1'
@@ -182,6 +182,19 @@ def navigateTrain():
         label_list.append(result['emo'])
     return render_template('navigateTrain.html', label_list=label_list, img_path=img_path)
 
+@app.route('/navigateTest',methods=['GET','POST'])
+def navigateTest():
+    if not session.get('is_login'):
+        flash('please login first')
+        return render_template('login.html')
+    db = client.web
+    model_id_list=db.users.find_one({'username':session.get('name')})['models']    # 存放models中属于他的model的_id
+    model_info_list=[]
+    for ID in model_id_list:    # ID为列表model_id
+        one_model_info=db.models.files.find_one({'_id':ObjectId(ID)})
+        model_info_list.append([ID,one_model_info['modelname'],one_model_info['labels']])  # 存放格式为[ID,'default',['happy','angry'....]]
+    return render_template('navigateTest.html',model_info_list=model_info_list)
+
 @app.route('/navigateAdditionLabel', methods=['GET', 'POST'])
 def navigateAdditionLabel():
     if request.method == 'POST':
@@ -194,7 +207,40 @@ def navigateAdditionLabel():
             db.labels.insert({'emo' : additionLabels})
     return redirect('/finishUpload')
 
+@app.route('/testResult',methods=['GET', 'POST'])
+def recognize():
+    selected_model_id=request.form.get('model_info')
+    print(selected_model_id)
+    db = client.web
+    selected_json_id = db.models.files.find_one({'modelId': selected_model_id,'type':'json'})['_id']
+    selected_xml_id = db.models.files.find_one({'modelId': selected_model_id,'type':'xml'})['_id']
+    print(selected_json_id)
+    print(selected_xml_id)
+    gfs_model = GFS(Mongo_Database, 'models', client)  # gridfs initialize
+    db,_=gfs_model.createDB()
+    tmp_save_model,tmp_save_json,tmp_save_xml='static/TmpModels/tmp.h5','static/TmpModels/tmp.json','static/TmpModels/tmp.xml'
 
+    (bdata, attri) = gfs_model.getFile(db,ObjectId(selected_model_id))  # 导出model文件到临时文件夹
+    tmp_out_model=open(tmp_save_model,'wb')
+    tmp_out_model.write(bdata)
+    tmp_out_model.close()
+    (bdata, attri) = gfs_model.getFile(db, ObjectId(selected_json_id))
+    tmp_out_model=open(tmp_save_json,'wb')
+    tmp_out_model.write(bdata)
+    tmp_out_model.close()
+    (bdata, attri) = gfs_model.getFile(db, ObjectId(selected_xml_id))
+    tmp_out_model = open(tmp_save_xml, 'wb')
+    tmp_out_model.write(bdata)
+    tmp_out_model.close()
+    uploaded_path,test_result_path='static/TmpUploadDir','static/TmpResult'
+    test_img=os.listdir(uploaded_path)
+    test_img.remove('.gitkeep')
+    recog=Recognition(tmp_save_json,tmp_save_model,tmp_save_xml)
+    for img in test_img:
+        recog.recognize(os.path.join(uploaded_path,img),os.path.join(test_result_path,"marked_"+img))
+    print('ok')
+
+    return render_template('testResult.html')
 if __name__ == '__main__':
     app.run(threaded=True,host="0.0.0.0")
 

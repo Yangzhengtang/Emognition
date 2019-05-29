@@ -44,10 +44,10 @@ class GFS(object):
         print(attri)
         return (bdata, attri)
 
-    def write_2_disk(self,bdata, attri): #将二进制数据存入磁盘
+    def write_2_disk(self,path,bdata, attri): #将二进制数据存入磁盘
         name = "get_"+attri['filename']
         if name:
-            output = open(name, 'wb')
+            output = open(path+name, 'wb')
         output.write(bdata)
         output.close()
         print("fetch image ok!")
