@@ -142,18 +142,7 @@ def goHome():
 def uploadSuccess():
     return render_template('uploadSuccess.html')
 
-@app.route('/resultsAfterSelection', methods=['GET', 'POST'])
-def navigatefterSelection():
-    if request.method == 'POST':
-        print("here")
-        description = request.form.get('description')
-        selection = request.form.get('selection')
-        print("Got it")
-        print(description + selection)
-    return render_template('sierra/base.html')
-
 img_path = '-1'
-label = '-1'
 @app.route('/finishUpload',methods=['POST','GET'])
 def finishUpload():
     global img_path
@@ -170,10 +159,37 @@ def finishUpload():
         clear_imgs()
         img_path = '-1'
         return render_template('uploadSuccess.html')
-    label_list = ['angry', 'happy', 'fear', 'sad','surprise','neural']  # 之后为从数据库读取，各个用户所需标签不同
+
+    label_list = []
+    db = client.web
+    labels_results = db.labels.find()
+    for result in labels_results:
+        print(result)
+        label_list.append(result['emo'])
+
+    #label_list = ['angry', 'happy', 'fear', 'sad','surprise','neural']  # 之后为从数据库读取，各个用户所需标签不同
     return render_template('setLabel.html', label_list=label_list, img_path=img_path)
 
+@app.route('/navigateTrain', methods=['GET', 'POST'])
+def navigateTrain():
+    label_list = []
+    db = client.web
+    labels_results = db.labels.find()
+    for result in labels_results:
+        print(result)
+        label_list.append(result['emo'])
+    return render_template('navigateTrain.html', label_list=label_list, img_path=img_path)
 
+@app.route('/navigateAdditionLabel', methods=['GET', 'POST'])
+def navigateAdditionLabel():
+    if request.method == 'POST':
+        #   Todo: add multiple labels
+        additionLabels = request.form.get('additionLabels')
+        print("Got it: " + additionLabels)
+        db = client.web
+        #db.labels.update({'emo' : additionLabels}, { $setOnInsert:{'emo' : additionLabels}}, {upsert:true})
+        db.labels.insert({'emo' : additionLabels})
+    return redirect('/finishUpload')
 
 
 if __name__ == '__main__':
