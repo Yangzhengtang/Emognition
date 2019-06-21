@@ -38,6 +38,7 @@ def hash_code(s, salt='huyz'):
 # 因为会刷新页面，因此会多次调用某个函数，因此只能使用全局变量进行存储
 upload_img_count=0  # 上传图片的数量
 uploaded_img=[]     # 上传图片的路径名列表
+clear_flag=0        # 临时文件夹是否已清空标志，由于用户的操作不能预测，可能尚未读取完全部结果就重定向，因此需要清空临时文件夹保证程序正常运行
 
 def get_upload_img(path):
     '''
@@ -56,7 +57,7 @@ def get_upload_img(path):
 def clear_imgs():
     '''
     written by 胡煜宗
-    清空临时文件
+    清空上传图片的临时文件
     :return:
     '''
     global upload_img_count,uploaded_img
@@ -65,6 +66,7 @@ def clear_imgs():
     uploaded_img=[]
     # print("Clear temp pics")
     return
+
 
 def get_img_path(path):
     '''
@@ -198,7 +200,7 @@ img_path = '-1'
 def FinishUpload():
     global img_path
     if request.method == 'POST':  
-        selected_label_before = request.form.getlist('selected_label_before')   #   args from setting.html
+        selected_label_before = request.form.getlist('selected_label_before')   #   args from navigateTrain.html
         selected_label_after = request.form.getlist('selected_label_after')     #   args from setLabel.html
         print(selected_label_before)
         print(selected_label_after)
@@ -221,7 +223,7 @@ def FinishUpload():
             show_label_list = client.web.models.find_one({'uid':session['uid']})['labels']
             return render_template('setLabel.html', label_list=show_label_list, img_path=img_path)
 
-        else:   #   from setting.html
+        else:   #   from navigateTrain.html
             print("Run 2")
             img_path = get_img_path("static/TmpUploadDir")
             uid = str(os.urandom(24))
@@ -249,8 +251,8 @@ def progressPage():
         label_list.append(result)
     return render_template('progress.html', label_list=label_list)
 
-@app.route('/setting', methods=['GET', 'POST'])
-def setting():
+@app.route('/navigateTrain', methods=['GET', 'POST'])
+def navigateTrain():
     if request.method == 'POST': #   Refresh
         label_list = get_values_from_db('labels', 'emo')
         additionLabels = request.form.get('additionLabels')
@@ -259,10 +261,10 @@ def setting():
             db = client.web
             db.labels.insert({'emo': additionLabels, 'count': 0})
             label_list.append(additionLabels)
-        return render_template('setting.html', label_list=label_list)
+        return render_template('navigateTrain.html', label_list=label_list)
     else:
         label_list = get_values_from_db('labels', 'emo')
-        return render_template('setting.html', label_list=label_list)
+        return render_template('navigateTrain.html', label_list=label_list)
 
 
 @app.route('/navigateTest',methods=['GET','POST'])
@@ -294,7 +296,7 @@ def navigateAdditionLabel():
             db = client.web
             db.labels.insert({'emo': additionLabels, 'count': 0})
             label_list.append(additionLabels)
-        return render_template('setting.html', label_list=label_list)
+        return render_template('navigateTrain.html', label_list=label_list)
 
 @app.route('/testResult',methods=['GET', 'POST'])
 def recognize():
