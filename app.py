@@ -227,49 +227,49 @@ def goHome():
 
 @app.route('/uploadSuccess')
 def uploadSuccess():
+    del session['upload_token'] # 清空session中upload_token
     return render_template('uploadSuccess.html')
 
-img_path = '-1'
 @app.route('/setTrainLabel',methods=['POST','GET'])
 def setTrainLabel():
-    global img_path
-    if request.method == 'POST':  
+    if request.method == 'POST':
+
+        if(isValid()):
+            upload_token = session['upload_token']
+
+        #   以下两个变量用于判断跳转来源
         selected_label_before = request.form.getlist('selected_label_before')   #   args from navigateTrain.html
         selected_label_after = request.form.getlist('selected_label_after')     #   args from setTrainLabel.html
-        print(selected_label_before)
-        print(selected_label_after)
 
-        if(selected_label_after!=[]):    #   from setTrainLabel.html
-            print("Run 1")
-            query = {'filename': img_path}
-            id = gfs.insertFile(file_db_handler, img_path, query, selected_label_after[0])  # 插入照片
+        if(selected_label_after!=[]):    #   from setTrainLabel.html，完成标注后
+            showing_pic = uploaded_files.pop() # 列表最后一张照片已经显示，pop之
+            session['uploaded_files'] = uploaded_files
+
+            query = {'filename': showing_pic}   #   准备更新数据库
+            id = gfs.insertFile(file_db_handler, showing_pic, query, selected_label_after[0])  # 插入照片
+ 
             #   the count of each label should +1
             for label in selected_label_after:
                 condition = {'emo': label}
                 result = client.web.labels.find_one(condition)
                 result['count'] += 1
             client.web.labels.update(condition, result)
-            img_path = get_img_path("static/TmpUploadDir")
-            if img_path == '-1':
-                clear_imgs()
-                img_path = '-1'
-                return render_template('uploadSuccess.html')
-            show_label_list = client.web.models.find_one({'uid':session['uid']})['labels']
-            return render_template('setTrainLabel.html', label_list=show_label_list, img_path=img_path)
 
-        else:   #   from navigateTrain.html
-            print("Run 2")
-            img_path = get_img_path("static/TmpUploadDir")
-            uid = str(os.urandom(24))
-            query = {'labels': selected_label_before, 'uid': uid}
+        else:   #   from navigateTrain.html，即第一次需要标注时，只需显示页面
+            #   初始化session中的uploaded_files
+            uploaded_files = os.listdir(os.path.join('static/TmpUploadDir', upload_token))
+            if not session.get('uploaded_files'):
+                session['uploaded_files'] = uploaded_files、
+            #   数据库中新建model
+            query = {'labels': selected_label_before, 'upload_token': upload_token}
             client.web.models.insert(query)
-            session['uid'] = uid
-            if img_path == '-1':
-                clear_imgs()
-                img_path = '-1'
-                return render_template('uploadSuccess.html')
-            show_label_list = client.web.models.find_one({'uid':session['uid']})['labels']
-            return render_template('setTrainLabel.html', label_list=show_label_list, img_path=img_path)
+
+        if(not len(uploaded_files)):   #   列表中无文件，标记完毕
+            return render_template('uploadSuccess.html')
+        else:   
+            show_label_list = client.web.models.find_one({'upload_token': upload_token})['labels']
+            return render_template('setTrainLabel.html', label_list=show_label_list, img_path=uploaded_files[-1])
+
     else:
         print("WHAT")
 
@@ -287,7 +287,9 @@ def progressPage():
 
 @app.route('/navigateTrain', methods=['GET', 'POST'])
 def navigateTrain():
-    if request.method == 'POST': #   Refresh
+    if request.method == 'POST': #   点击add按钮的情况(navigateAdditionLabel)，添加标签，再次刷新
+        print('something wrong.')
+    '''
         label_list = get_values_from_db('labels', 'emo')
         additionLabels = request.form.get('additionLabels')
         print("Got it: " + additionLabels)
@@ -296,7 +298,8 @@ def navigateTrain():
             db.labels.insert({'emo': additionLabels, 'count': 0})
             label_list.append(additionLabels)
         return render_template('navigateTrain.html', label_list=label_list)
-    else:
+    '''
+    else:   #   第一次点开navigateTrain的情况
         label_list = get_values_from_db('labels', 'emo')
         return render_template('navigateTrain.html', label_list=label_list)
 
@@ -321,7 +324,7 @@ def navigateTest():
 
 @app.route('/navigateAdditionLabel', methods=['GET', 'POST'])
 def navigateAdditionLabel():
-    if request.method == 'POST':    #   Refresh
+    if request.method == 'POST':    #   点击add按钮的情况，添加标签，再次刷新返回navigateTrain页面
         #   Todo: add multiple labels
         label_list = get_values_from_db('labels', 'emo')
         additionLabels = request.form.get('additionLabels')
@@ -347,10 +350,7 @@ def recognize():
     gfs_model = GFS(Mongo_Database, 'models', client)  # gridfs initialize
     db,_=gfs_model.createDB()
 
-    if not session.get('upload_token'):
-        flash('Something wrong')
-        return render_template('login.html')    
-    else:
+    if(isValid()):
         upload_token = session['upload_token']
         tmp_path = os.path.join('static/TmpModels', upload_token)
 
@@ -393,7 +393,10 @@ def recognize():
     for img in test_img:
         recog.recognize(os.path.join(uploaded_path,img),os.path.join(test_result_path,"marked_"+img))   # 保存识别结果
 
+    #   初始化session中的result
     result_list=os.listdir(test_result_path)
+    if not session.get('result'):
+        session['result'] = result_list
 
     for tmp_remove in test_img:     #   删除上传的图片
         os.remove(os.path.join(uploaded_path, tmp_remove))
@@ -413,10 +416,7 @@ def showTestResult():
     对应于testResult.html中点击next result的页面刷新功能，显示下一张打了标记的照片
     :return:
     '''
-    if not session.get('upload_token'):
-        flash('Something wrong')
-        return render_template('login.html')    
-    else:
+    if(isValid()):
         upload_token = session['upload_token']
 
     result=session['result']
@@ -429,6 +429,17 @@ def showTestResult():
         os.removedirs(os.path.join('static/TmpResult',upload_token))    #   删除临时文件夹
         return render_template('testSuccess.html')
     return render_template('testResult.html')
+
+def isValid():  #   判断本次访问是否合法（是否是由正常顺序访问而来）
+    if not session.get('is_login'): # 验证登录
+        flash('please login first')
+        return render_template('login.html')
+
+    if not session.get('upload_token'): # 验证是否上传过
+        flash('Something wrong')
+        return render_template('sierra/base.html')    
+    else:
+        return True
 
 if __name__ == '__main__':
     app.run(threaded=True,host="0.0.0.0",port=8090)
