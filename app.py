@@ -37,68 +37,6 @@ def hash_code(s, salt='huyz'):
     md5.update(s.encode('utf-8'))
     return md5.hexdigest()
 
-# 因为会刷新页面，因此会多次调用某个函数，因此只能使用全局变量进行存储
-upload_img_count=0  # 上传图片的数量
-uploaded_img=[]     # 上传图片的路径名列表
-clear_flag=1        # 临时文件夹是否已清空标志，1表示已经清空，可以使用，0表示未清空
-                    # 由于用户的操作不能预测，可能尚未读取完全部结果就重定向，因此需要清空临时文件夹保证程序正常运行
-
-def get_upload_img(path):
-    '''
-    written by 胡煜宗
-    将临时文件夹下的文件路径加入全局变量uploaded_img
-    :param path: 临时文件夹路径名，如stattc/TmpUploadDir
-    :return:
-    '''
-    global uploaded_img
-    if uploaded_img!=[]:
-        return
-    uploaded_img=os.listdir(path)
-    uploaded_img.remove('.gitkeep') # 由于有.gitkeep文件，所以需要过滤一次，返回所有临时文件的名字列表
-    return
-
-# 准备淘汰的函数
-def clear_imgs():
-    '''
-    written by 胡煜宗
-    清空上传图片的临时文件
-    :return:
-    '''
-    global upload_img_count,uploaded_img
-    for img in uploaded_img:    # 删除临时文件
-        os.remove(os.path.join("static/TmpUploadDir",img))
-    uploaded_img=[]
-    # print("Clear temp pics")
-    return
-
-def clear_tmp_dir(dirpath):
-    '''
-    written by 胡煜宗
-    删除临时文件夹中的文件
-    :param dirpath:临时文件夹的路径
-    :return:
-    '''
-    tmp_file=os.listdir(dirpath)
-    tmp_file.remove(".gitkeep")
-    for remove_file in tmp_file:
-        os.remove(os.path.join(dirpath,remove_file))
-    return
-
-def get_img_path(path):
-    '''
-    written by 胡煜宗
-    加载下一张临时图片的路径
-    :param path:
-    :return:
-    '''
-    global upload_img_count,uploaded_img
-    get_upload_img(path)    # 修改全局变量uploaded_img,如果uploaded_img为空则将临时文件夹下所有文件名加入uploaded_img
-    if upload_img_count==0:
-        return '-1'
-    filepath=uploaded_img[upload_img_count-1]
-    upload_img_count-=1
-    return os.path.join('static/TmpUploadDir',filepath)
-
 def get_values_from_db(table, field):
     value_list = []
     db = client.web
@@ -149,8 +87,6 @@ def upload():
             fname=file.filename[:file.filename.find('.')]+"_{:.0f}".format(count)+file.filename[file.filename.find('.'):]
             count+=1
         file.save(os.path.join(upload_dir, fname))  # 保存到临时文件夹
-        #global upload_img_count
-        #upload_img_count+=1
         print("Got the file. %s" % fname)
     return render_template('upload.html')
 
@@ -269,7 +205,8 @@ def setTrainLabel():
             return render_template('uploadSuccess.html')
         else:   
             show_label_list = client.web.models.find_one({'upload_token': upload_token})['labels']
-            return render_template('setTrainLabel.html', label_list=show_label_list, img_path=uploaded_files[-1])
+            img_path = os.path.join('static/TmpUploadDir', uploaded_files[-1])
+            return render_template('setTrainLabel.html', label_list=show_label_list, img_path=img_path)
 
     else:
         print("WHAT")
@@ -379,18 +316,29 @@ def recognize():
     if not folder:
         os.makedirs(test_result_path) 
 
-    test_img=os.listdir(uploaded_path)
+    test_imgs=os.listdir(uploaded_path)
     # 调用后端的模型调用代码，创建表情识别实例
     recog=Recognition(tmp_save_json,tmp_save_model,tmp_save_xml)
-    for img in test_img:
-        recog.recognize(os.path.join(uploaded_path,img),os.path.join(test_result_path,"marked_"+img))   # 保存识别结果
+    for img in test_imgs:
+        print("--------------------------DEBUG---------------------------------------")
+        origin_img = os.path.join(uploaded_path,img)
+        target_img = os.path.join(test_result_path,"marked_"+img)
+        print("dealing img, source:%s, target: %s" % (str(origin_img), str(target_img)))
+        recog.recognize(origin_img, target_img)   # 保存识别结果
+        print("Deal done.")
 
     #   初始化session中的result
-    result_list=os.listdir(test_result_path)
+    temp_result_list = os.listdir(test_result_path)
+    result_list = []
+    for result in temp_result_list:
+        result_list.append(os.path.join(test_result_path, result))
     if not session.get('result'):
         session['result'] = result_list
+    print("--------------------------DEBUG---------------------------------------")
+    print("Results: %s" % str(result_list))
 
-    for tmp_remove in test_img:     #   删除上传的图片
+
+    for tmp_remove in test_imgs:     #   删除上传的图片
         os.remove(os.path.join(uploaded_path, tmp_remove))
     os.removedirs(uploaded_path)    #   删除临时文件夹
 
@@ -414,7 +362,7 @@ def showTestResult():
     result=session['result']
     result_pic=result.pop() # 列表最后一张照片已显示过，pop之
     session['result']=result
-    os.remove(os.path.join('static/TmpResult',upload_token, result_pic))
+    os.remove(result_pic)
 
     if result==[]:
         # 运行到这里说明每个结果文件都删除，此时清空对应临时文件夹

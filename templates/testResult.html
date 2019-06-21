@@ -20,7 +20,7 @@
 			            </div>
 			        {% endfor %}
 			    </div>
-            <img src="static/TmpResult/{{ session.result[-1] }}" style="width: 400px;height: 400px;">
+            <img src="{{ session.result[-1] }}" style="width: 400px;height: 400px;">
             </div>
             <div class="col-lg-6">
                     <form name="choice" action="showTestResult" method='POST'>
