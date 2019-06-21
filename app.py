@@ -145,6 +145,9 @@ def upload():
         count=0
         fname=file.filename
         upload_dir = os.path.join('static/TmpUploadDir', session['upload_token'])
+        while os.path.exists(os.path.join('static/TmpUploadDir', fname)):  # 防止文件名重复
+            fname=file.filename[:file.filename.find('.')]+"_{:.0f}".format(count)+file.filename[file.filename.find('.'):]
+            count+=1
         file.save(os.path.join(upload_dir, fname))  # 保存到临时文件夹
         #global upload_img_count
         #upload_img_count+=1
@@ -233,21 +236,20 @@ def uploadSuccess():
 @app.route('/setTrainLabel',methods=['POST','GET'])
 def setTrainLabel():
     if request.method == 'POST':
-
         if(isValid()):
             upload_token = session['upload_token']
-
+            uploaded_files = os.listdir(os.path.join('static/TmpUploadDir', upload_token))
         #   以下两个变量用于判断跳转来源
         selected_label_before = request.form.getlist('selected_label_before')   #   args from navigateTrain.html
         selected_label_after = request.form.getlist('selected_label_after')     #   args from setTrainLabel.html
 
         if(selected_label_after!=[]):    #   from setTrainLabel.html，完成标注后
-            showing_pic = uploaded_files.pop() # 列表最后一张照片已经显示，pop之
+            # 列表最后一张照片已经显示，pop之
+            showing_pic = uploaded_files.pop() 
             session['uploaded_files'] = uploaded_files
-
-            query = {'filename': showing_pic}   #   准备更新数据库
-            id = gfs.insertFile(file_db_handler, showing_pic, query, selected_label_after[0])  # 插入照片
- 
+            #   准备更新数据库,插入照片
+            query = {'filename': showing_pic}  
+            id = gfs.insertFile(file_db_handler, showing_pic, query, selected_label_after[0])  
             #   the count of each label should +1
             for label in selected_label_after:
                 condition = {'emo': label}
@@ -255,11 +257,10 @@ def setTrainLabel():
                 result['count'] += 1
             client.web.labels.update(condition, result)
 
-        else:   #   from navigateTrain.html，即第一次需要标注时，只需显示页面
+        else:           #   from navigateTrain.html，即第一次需要标注时，只需显示页面
             #   初始化session中的uploaded_files
-            uploaded_files = os.listdir(os.path.join('static/TmpUploadDir', upload_token))
             if not session.get('uploaded_files'):
-                session['uploaded_files'] = uploaded_files、
+                session['uploaded_files'] = uploaded_files
             #   数据库中新建model
             query = {'labels': selected_label_before, 'upload_token': upload_token}
             client.web.models.insert(query)
@@ -289,16 +290,7 @@ def progressPage():
 def navigateTrain():
     if request.method == 'POST': #   点击add按钮的情况(navigateAdditionLabel)，添加标签，再次刷新
         print('something wrong.')
-    '''
-        label_list = get_values_from_db('labels', 'emo')
-        additionLabels = request.form.get('additionLabels')
-        print("Got it: " + additionLabels)
-        if(additionLabels!='' and (additionLabels not in label_list)): #   Got new input
-            db = client.web
-            db.labels.insert({'emo': additionLabels, 'count': 0})
-            label_list.append(additionLabels)
-        return render_template('navigateTrain.html', label_list=label_list)
-    '''
+
     else:   #   第一次点开navigateTrain的情况
         label_list = get_values_from_db('labels', 'emo')
         return render_template('navigateTrain.html', label_list=label_list)
