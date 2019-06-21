@@ -166,7 +166,8 @@ def goHome():
 
 @app.route('/uploadSuccess', methods=['GET', 'POST'])
 def uploadSuccess():
-    del session['upload_token'] # 清空session中upload_token
+    session.pop('upload_token',None)
+    #del session['upload_token'] # 清空session中upload_token
     print(str(session))
     return render_template('uploadSuccess.html')
 
@@ -198,8 +199,7 @@ def setTrainLabel():
 
     else:           #   from navigateTrain.html，即第一次需要标注时，只需显示页面
         #   初始化session中的uploaded_files
-        if not session.get('uploaded_files'):
-            session['uploaded_files'] = uploaded_files
+        session['uploaded_files'] = uploaded_files
         #   数据库中新建model
         query = {'labels': selected_label_before, 'upload_token': upload_token}
         client.web.models.insert(query)
@@ -330,8 +330,8 @@ def recognize():
     result_list = []
     for result in temp_result_list:
         result_list.append(os.path.join(test_result_path, result))
-    if not session.get('result'):
-        session['result'] = result_list
+
+    session['result'] = result_list
 
     for tmp_remove in test_imgs:     #   删除上传的图片
         os.remove(os.path.join(uploaded_path, tmp_remove))
