@@ -8,6 +8,8 @@ import os
 from GFS import *
 from Recognize.Recognize import Recognition
 import types 
+import random
+import string
 
 app = Flask(__name__)
 # app.config.from_object(config)
@@ -106,6 +108,15 @@ def get_values_from_db(table, field):
         value_list.append(result[field])
     return value_list
 
+def get_random_string():
+    #   生成8位随机字符串
+    seed = "1234567890abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ!@#$%^&*()_+=-"
+    sa = []
+    for i in range(8):
+        sa.append(random.choice(seed))
+    salt = ''.join(sa)
+    return salt
+
 
 @app.route('/upload', methods = ['POST', 'GET'])
 def upload():
@@ -115,6 +126,17 @@ def upload():
     前端每异步上传一张照片，调用一次该函数
     :return:
     '''
+    if not session.get('upload_token'): #   添加upload_token，对每次用户使用upload功能进行标识
+        existing_path = os.listdir('static/TmpUploadDir')
+        while True:
+            upload_token = get_random_string()
+            if(upload_token not in existing_path):
+                break
+        #   防止随机字符串重复
+        session['upload_token'] = upload_token
+        os.makedirs(os.path.join('static/TmpUploadDir', session['upload_token'])) 
+        #   新建临时文件夹，存储上传图片
+
     if request.method=='POST':  # POST表示提交了文件
         if not session.get('is_login'): # 验证登录
             flash('please login first')
@@ -122,12 +144,10 @@ def upload():
         file = request.files['file']
         count=0
         fname=file.filename
-        while os.path.exists(os.path.join('static/TmpUploadDir', fname)):  # 防止文件名重复
-            fname=file.filename[:file.filename.find('.')]+"_{:.0f}".format(count)+file.filename[file.filename.find('.'):]
-            count+=1
-        file.save(os.path.join('static/TmpUploadDir', fname))  # 保存到临时文件夹
-        global upload_img_count
-        upload_img_count+=1
+        upload_dir = os.path.join('static/TmpUploadDir', session['upload_token'])
+        file.save(os.path.join(upload_dir, fname))  # 保存到临时文件夹
+        #global upload_img_count
+        #upload_img_count+=1
         print("Got the file. %s" % fname)
     return render_template('upload.html')
 
@@ -288,11 +308,6 @@ def navigateTest():
     显示该用户可用的模型，对应于upload.html中点击test按钮跳转的页面
     :return:
     '''
-    global clear_flag
-    if clear_flag != 1:  # 表示未清空临时文件夹
-        clear_tmp_dir('static/TmpModels')
-        clear_tmp_dir('static/TmpResult')
-        clear_flag = 1
     if not session.get('is_login'):
         flash('please login first')
         return render_template('login.html')
@@ -331,7 +346,23 @@ def recognize():
     selected_xml_id = db.models.files.find_one({'modelId': selected_model_id,'type':'xml'})['_id']
     gfs_model = GFS(Mongo_Database, 'models', client)  # gridfs initialize
     db,_=gfs_model.createDB()
-    tmp_save_model,tmp_save_json,tmp_save_xml='static/TmpModels/tmp.h5','static/TmpModels/tmp.json','static/TmpModels/tmp.xml'
+
+    if not session.get('upload_token'):
+        flash('Something wrong')
+        return render_template('login.html')    
+    else:
+        upload_token = session['upload_token']
+        tmp_path = os.path.join('static/TmpModels', upload_token)
+
+    #   新建model文件夹
+    folder = os.path.exists(tmp_path)
+    if not folder:
+        os.makedirs(tmp_path) 
+
+    tmp_save_model = os.path.join(tmp_path, 'tmp.h5')
+    tmp_save_json  = os.path.join(tmp_path, 'tmp.json')
+    tmp_save_xml   = os.path.join(tmp_path, 'tmp.xml')
+
     # 导出model文件到临时文件夹
     (bdata, attri) = gfs_model.getFile(db,ObjectId(selected_model_id))
     tmp_out_model=open(tmp_save_model,'wb')
@@ -346,25 +377,33 @@ def recognize():
     tmp_out_model.write(bdata)
     tmp_out_model.close()
 
-    uploaded_path,test_result_path,tmp_model_path='static/TmpUploadDir','static/TmpResult','static/TmpModels'
+    #   每次使用test功能单独使用一个文件夹
+    uploaded_path    = os.path.join('static/TmpUploadDir',upload_token)
+    test_result_path = os.path.join('static/TmpResult',upload_token)
+    tmp_model_path   = os.path.join('static/TmpModels',upload_token)
+
+    #   新建result文件夹
+    folder = os.path.exists(test_result_path)
+    if not folder:
+        os.makedirs(test_result_path) 
+
     test_img=os.listdir(uploaded_path)
-    test_img.remove('.gitkeep')
     # 调用后端的模型调用代码，创建表情识别实例
     recog=Recognition(tmp_save_json,tmp_save_model,tmp_save_xml)
     for img in test_img:
         recog.recognize(os.path.join(uploaded_path,img),os.path.join(test_result_path,"marked_"+img))   # 保存识别结果
 
-    global clear_flag
-    clear_flag=0    # 临时文件夹中清空标志位置位
     result_list=os.listdir(test_result_path)
-    result_list.remove('.gitkeep')
-    session['result']=result_list
-    for tmp_remove in test_img:  # 删除上传的图片
+
+    for tmp_remove in test_img:     #   删除上传的图片
         os.remove(os.path.join(uploaded_path, tmp_remove))
+    os.removedirs(uploaded_path)    #   删除临时文件夹
+
     tmp_model=os.listdir(tmp_model_path)
-    tmp_model.remove('.gitkeep')
     for tmp_remove in tmp_model:    # 删除临时从mongo取出的model文件
         os.remove(os.path.join(tmp_model_path, tmp_remove))
+    os.removedirs(tmp_model_path)    #   删除临时文件夹
+
     return render_template('testResult.html')
 
 @app.route('/showTestResult',methods=['GET', 'POST'])
@@ -374,13 +413,20 @@ def showTestResult():
     对应于testResult.html中点击next result的页面刷新功能，显示下一张打了标记的照片
     :return:
     '''
+    if not session.get('upload_token'):
+        flash('Something wrong')
+        return render_template('login.html')    
+    else:
+        upload_token = session['upload_token']
+
     result=session['result']
     result_pic=result.pop() # 列表最后一张照片已显示过，pop之
     session['result']=result
-    os.remove(os.path.join('static/TmpResult',result_pic))
+    os.remove(os.path.join('static/TmpResult',upload_token, result_pic))
+
     if result==[]:
-        global clear_flag
-        clear_flag=1    # 运行到这里说明每个结果文件都删除，此时临时文件夹一定清空了
+        # 运行到这里说明每个结果文件都删除，此时清空对应临时文件夹
+        os.removedirs(os.path.join('static/TmpResult',upload_token))    #   删除临时文件夹
         return render_template('testSuccess.html')
     return render_template('testResult.html')
 
