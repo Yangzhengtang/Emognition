@@ -55,19 +55,3 @@ class GFS(object):
     def remove(self,db,id): #文件数据库中数据的删除
         fs = GridFS(db, self.file_table)        
         fs.delete(id) #只能是id
- 
-'''
-if __name__=='__main__':
-    mongo_client = MongoClient('localhost',27017)
-    mongo_client.web.authenticate('app','fuckingApp')
-    gfs=GFS('web','pictures', mongo_client)
-    (file_db,fileTable) = gfs.createDB() #创建数据库与数据表
-    filePath = './GFS.py' #插入的文件
-    query = {'filename': 'GFS.py'}
-    id=gfs.insertFile(file_db,filePath,query) #插入文件
-    print(id)
-    id=gfs.getID(file_db,query)
-    print(id)
-    (bdata,attri)=gfs.getFile(file_db,id) #查询并获取文件信息至内存
-    gfs.write_2_disk(bdata,attri) #写入磁盘 
-'''
