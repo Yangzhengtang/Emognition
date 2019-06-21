@@ -130,10 +130,12 @@ def upload():
         existing_path = os.listdir('static/TmpUploadDir')
         while True:
             upload_token = get_random_string()
-            if(upload_token not in existing_patht):
+            if(upload_token not in existing_path):
                 break
         #   防止随机字符串重复
-        session[upload_token] = upload_token
+        session['upload_token'] = upload_token
+        os.makedirs(os.path.join('static/TmpUploadDir', session['upload_token'])) 
+        #   新建临时文件夹，存储上传图片
 
     if request.method=='POST':  # POST表示提交了文件
         if not session.get('is_login'): # 验证登录
@@ -142,7 +144,7 @@ def upload():
         file = request.files['file']
         count=0
         fname=file.filename
-        upload_dir = os.path.join('static/TmpUploadDir', session[upload_token])
+        upload_dir = os.path.join('static/TmpUploadDir', session['upload_token'])
         file.save(os.path.join(upload_dir, fname))  # 保存到临时文件夹
         #global upload_img_count
         #upload_img_count+=1
@@ -348,9 +350,14 @@ def recognize():
     if not session.get('upload_token'):
         flash('Something wrong')
         return render_template('login.html')    
-    else
+    else:
         upload_token = session['upload_token']
         tmp_path = os.path.join('static/TmpModels', upload_token)
+
+    #   新建model文件夹
+    folder = os.path.exists(tmp_path)
+    if not folder:
+        os.makedirs(tmp_path) 
 
     tmp_save_model = os.path.join(tmp_path, 'tmp.h5')
     tmp_save_json  = os.path.join(tmp_path, 'tmp.json')
@@ -374,6 +381,11 @@ def recognize():
     uploaded_path    = os.path.join('static/TmpUploadDir',upload_token)
     test_result_path = os.path.join('static/TmpResult',upload_token)
     tmp_model_path   = os.path.join('static/TmpModels',upload_token)
+
+    #   新建result文件夹
+    folder = os.path.exists(test_result_path)
+    if not folder:
+        os.makedirs(test_result_path) 
 
     test_img=os.listdir(uploaded_path)
     # 调用后端的模型调用代码，创建表情识别实例
@@ -404,7 +416,7 @@ def showTestResult():
     if not session.get('upload_token'):
         flash('Something wrong')
         return render_template('login.html')    
-    else
+    else:
         upload_token = session['upload_token']
 
     result=session['result']
