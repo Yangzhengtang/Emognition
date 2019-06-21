@@ -38,7 +38,8 @@ def hash_code(s, salt='huyz'):
 # 因为会刷新页面，因此会多次调用某个函数，因此只能使用全局变量进行存储
 upload_img_count=0  # 上传图片的数量
 uploaded_img=[]     # 上传图片的路径名列表
-clear_flag=0        # 临时文件夹是否已清空标志，由于用户的操作不能预测，可能尚未读取完全部结果就重定向，因此需要清空临时文件夹保证程序正常运行
+clear_flag=1        # 临时文件夹是否已清空标志，1表示已经清空，可以使用，0表示未清空
+                    # 由于用户的操作不能预测，可能尚未读取完全部结果就重定向，因此需要清空临时文件夹保证程序正常运行
 
 def get_upload_img(path):
     '''
@@ -54,6 +55,7 @@ def get_upload_img(path):
     uploaded_img.remove('.gitkeep') # 由于有.gitkeep文件，所以需要过滤一次，返回所有临时文件的名字列表
     return
 
+# 准备淘汰的函数
 def clear_imgs():
     '''
     written by 胡煜宗
@@ -67,6 +69,18 @@ def clear_imgs():
     # print("Clear temp pics")
     return
 
+def clear_tmp_dir(dirpath):
+    '''
+    written by 胡煜宗
+    删除临时文件夹中的文件
+    :param dirpath:临时文件夹的路径
+    :return:
+    '''
+    tmp_file=os.listdir(dirpath)
+    tmp_file.remove(".gitkeep")
+    for remove_file in tmp_file:
+        os.remove(os.path.join(dirpath,remove_file))
+    return
 
 def get_img_path(path):
     '''
@@ -196,16 +210,16 @@ def uploadSuccess():
     return render_template('uploadSuccess.html')
 
 img_path = '-1'
-@app.route('/FinishUpload',methods=['POST','GET'])
-def FinishUpload():
+@app.route('/setTrainLabel',methods=['POST','GET'])
+def setTrainLabel():
     global img_path
     if request.method == 'POST':  
         selected_label_before = request.form.getlist('selected_label_before')   #   args from navigateTrain.html
-        selected_label_after = request.form.getlist('selected_label_after')     #   args from setLabel.html
+        selected_label_after = request.form.getlist('selected_label_after')     #   args from setTrainLabel.html
         print(selected_label_before)
         print(selected_label_after)
 
-        if(selected_label_after!=[]):    #   from setLabel.html
+        if(selected_label_after!=[]):    #   from setTrainLabel.html
             print("Run 1")
             query = {'filename': img_path}
             id = gfs.insertFile(file_db_handler, img_path, query, selected_label_after[0])  # 插入照片
@@ -221,7 +235,7 @@ def FinishUpload():
                 img_path = '-1'
                 return render_template('uploadSuccess.html')
             show_label_list = client.web.models.find_one({'uid':session['uid']})['labels']
-            return render_template('setLabel.html', label_list=show_label_list, img_path=img_path)
+            return render_template('setTrainLabel.html', label_list=show_label_list, img_path=img_path)
 
         else:   #   from navigateTrain.html
             print("Run 2")
@@ -235,7 +249,7 @@ def FinishUpload():
                 img_path = '-1'
                 return render_template('uploadSuccess.html')
             show_label_list = client.web.models.find_one({'uid':session['uid']})['labels']
-            return render_template('setLabel.html', label_list=show_label_list, img_path=img_path)
+            return render_template('setTrainLabel.html', label_list=show_label_list, img_path=img_path)
     else:
         print("WHAT")
 
@@ -274,6 +288,11 @@ def navigateTest():
     显示该用户可用的模型，对应于upload.html中点击test按钮跳转的页面
     :return:
     '''
+    global clear_flag
+    if clear_flag != 1:  # 表示未清空临时文件夹
+        clear_tmp_dir('static/TmpModels')
+        clear_tmp_dir('static/TmpResult')
+        clear_flag = 1
     if not session.get('is_login'):
         flash('please login first')
         return render_template('login.html')
@@ -333,8 +352,11 @@ def recognize():
     # 调用后端的模型调用代码，创建表情识别实例
     recog=Recognition(tmp_save_json,tmp_save_model,tmp_save_xml)
     for img in test_img:
-        recog.recognize(os.path.join(uploaded_path,img),os.path.join(test_result_path,"marked_"+img))
-    result_list=os.listdir('static/TmpResult')
+        recog.recognize(os.path.join(uploaded_path,img),os.path.join(test_result_path,"marked_"+img))   # 保存识别结果
+
+    global clear_flag
+    clear_flag=0    # 临时文件夹中清空标志位置位
+    result_list=os.listdir(test_result_path)
     result_list.remove('.gitkeep')
     session['result']=result_list
     for tmp_remove in test_img:  # 删除上传的图片
@@ -357,6 +379,8 @@ def showTestResult():
     session['result']=result
     os.remove(os.path.join('static/TmpResult',result_pic))
     if result==[]:
+        global clear_flag
+        clear_flag=1    # 运行到这里说明每个结果文件都删除，此时临时文件夹一定清空了
         return render_template('testSuccess.html')
     return render_template('testResult.html')
 
