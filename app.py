@@ -205,7 +205,12 @@ def setTrainLabel():
         client.web.models.insert(query)
     
     if(not len(uploaded_files)):   #   列表中无文件，标记完毕
-        return redirect('/uploadSuccess')
+        #   在用户所预约的model中添加新项
+        condition = {'username':session.get('name')}
+        result = client.web.users.find_one(condition)
+        result['models'].append(upload_token)
+        client.web.users.update(condition, result)
+        return redirect('/uploadSuccess')   #   跳转至结束页面
     else:   
         show_label_list = client.web.models.find_one({'upload_token': upload_token})['labels']
         return render_template('setTrainLabel.html', label_list=show_label_list, img_path=uploaded_files[-1])
