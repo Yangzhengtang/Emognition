@@ -64,6 +64,10 @@ def upload():
     前端每异步上传一张照片，调用一次该函数
     :return:
     '''
+    if not session.get('is_login'): # 验证登录
+        flash('please login first')
+        return redirect('/login')
+
     if not session.get('upload_token'): #   添加upload_token，对每次用户使用upload功能进行标识
         existing_path = os.listdir('static/TmpUploadDir')
         while True:
@@ -76,9 +80,6 @@ def upload():
         #   新建临时文件夹，存储上传图片
 
     if request.method=='POST':  # POST表示提交了文件
-        if not session.get('is_login'): # 验证登录
-            flash('please login first')
-            return render_template('login.html')
         file = request.files['file']
         count=0
         fname=file.filename
@@ -155,62 +156,59 @@ def logout():
         return redirect('/')
     return redirect('/')
 
-
 @app.route('/')
 def index():
     return render_template('sierra/base.html')
 
-@app.route('/home')
+@app.route('/home', methods=['GET', 'POST'])
 def goHome():
     return render_template('sierra/base.html')
 
-@app.route('/uploadSuccess')
+@app.route('/uploadSuccess', methods=['GET', 'POST'])
 def uploadSuccess():
     del session['upload_token'] # 清空session中upload_token
+    print(str(session))
     return render_template('uploadSuccess.html')
 
 @app.route('/setTrainLabel',methods=['POST','GET'])
 def setTrainLabel():
-    if request.method == 'POST':
-        if(isValid()):
-            upload_token = session['upload_token']
-            uploaded_files = os.listdir(os.path.join('static/TmpUploadDir', upload_token))
-        #   以下两个变量用于判断跳转来源
-        selected_label_before = request.form.getlist('selected_label_before')   #   args from navigateTrain.html
-        selected_label_after = request.form.getlist('selected_label_after')     #   args from setTrainLabel.html
+    if(isValid()):
+        upload_token = session['upload_token']
+        upload_dir = os.path.join('static/TmpUploadDir', upload_token)
+        temp_uploaded_files = os.listdir(upload_dir)
+        uploaded_files = []
+        for file in temp_uploaded_files:
+            uploaded_files.append(os.path.join(upload_dir, file))
 
-        if(selected_label_after!=[]):    #   from setTrainLabel.html，完成标注后
-            # 列表最后一张照片已经显示，pop之
-            showing_pic = uploaded_files.pop() 
+    #   以下两个变量用于判断跳转来源
+    selected_label_before = request.form.getlist('selected_label_before')   #   args from navigateTrain.html
+    selected_label_after = request.form.getlist('selected_label_after')     #   args from setTrainLabel.html
+
+    if(selected_label_after!=[]):    #   from setTrainLabel.html，完成标注后
+        uploaded_files = session['uploaded_files']
+        showing_pic = uploaded_files.pop()  #   列表最后一张照片已经显示，pop之
+        session['uploaded_files'] = uploaded_files
+        query = {'filename': showing_pic}           #   准备更新数据库,插入照片
+        id = gfs.insertFile(file_db_handler, showing_pic, query, selected_label_after[0])  
+        for label in selected_label_after:  #   the count of each label should +1
+            condition = {'emo': label}
+            result = client.web.labels.find_one(condition)
+            result['count'] += 1
+        client.web.labels.update(condition, result)
+
+    else:           #   from navigateTrain.html，即第一次需要标注时，只需显示页面
+        #   初始化session中的uploaded_files
+        if not session.get('uploaded_files'):
             session['uploaded_files'] = uploaded_files
-            #   准备更新数据库,插入照片
-            query = {'filename': showing_pic}  
-            id = gfs.insertFile(file_db_handler, showing_pic, query, selected_label_after[0])  
-            #   the count of each label should +1
-            for label in selected_label_after:
-                condition = {'emo': label}
-                result = client.web.labels.find_one(condition)
-                result['count'] += 1
-            client.web.labels.update(condition, result)
-
-        else:           #   from navigateTrain.html，即第一次需要标注时，只需显示页面
-            #   初始化session中的uploaded_files
-            if not session.get('uploaded_files'):
-                session['uploaded_files'] = uploaded_files
-            #   数据库中新建model
-            query = {'labels': selected_label_before, 'upload_token': upload_token}
-            client.web.models.insert(query)
-
-        if(not len(uploaded_files)):   #   列表中无文件，标记完毕
-            return render_template('uploadSuccess.html')
-        else:   
-            show_label_list = client.web.models.find_one({'upload_token': upload_token})['labels']
-            img_path = os.path.join('static/TmpUploadDir', uploaded_files[-1])
-            return render_template('setTrainLabel.html', label_list=show_label_list, img_path=img_path)
-
-    else:
-        print("WHAT")
-
+        #   数据库中新建model
+        query = {'labels': selected_label_before, 'upload_token': upload_token}
+        client.web.models.insert(query)
+    
+    if(not len(uploaded_files)):   #   列表中无文件，标记完毕
+        return redirect('/uploadSuccess')
+    else:   
+        show_label_list = client.web.models.find_one({'upload_token': upload_token})['labels']
+        return render_template('setTrainLabel.html', label_list=show_label_list, img_path=uploaded_files[-1])
 
 @app.route('/progress')
 def progressPage():
@@ -231,7 +229,6 @@ def navigateTrain():
     else:   #   第一次点开navigateTrain的情况
         label_list = get_values_from_db('labels', 'emo')
         return render_template('navigateTrain.html', label_list=label_list)
-
 
 @app.route('/navigateTest',methods=['GET','POST'])
 def navigateTest():
@@ -320,12 +317,13 @@ def recognize():
     # 调用后端的模型调用代码，创建表情识别实例
     recog=Recognition(tmp_save_json,tmp_save_model,tmp_save_xml)
     for img in test_imgs:
-        print("--------------------------DEBUG---------------------------------------")
         origin_img = os.path.join(uploaded_path,img)
         target_img = os.path.join(test_result_path,"marked_"+img)
-        print("dealing img, source:%s, target: %s" % (str(origin_img), str(target_img)))
+        print("Recognizing img, source:%s, target: %s" % (str(origin_img), str(target_img)))
+        print("Recognizing......")
         recog.recognize(origin_img, target_img)   # 保存识别结果
-        print("Deal done.")
+        print("Recognizing......")
+        print("Done.")
 
     #   初始化session中的result
     temp_result_list = os.listdir(test_result_path)
@@ -334,9 +332,6 @@ def recognize():
         result_list.append(os.path.join(test_result_path, result))
     if not session.get('result'):
         session['result'] = result_list
-    print("--------------------------DEBUG---------------------------------------")
-    print("Results: %s" % str(result_list))
-
 
     for tmp_remove in test_imgs:     #   删除上传的图片
         os.remove(os.path.join(uploaded_path, tmp_remove))
@@ -367,17 +362,17 @@ def showTestResult():
     if result==[]:
         # 运行到这里说明每个结果文件都删除，此时清空对应临时文件夹
         os.removedirs(os.path.join('static/TmpResult',upload_token))    #   删除临时文件夹
-        return render_template('testSuccess.html')
+        return redirect('/uploadSuccess')
     return render_template('testResult.html')
 
 def isValid():  #   判断本次访问是否合法（是否是由正常顺序访问而来）
     if not session.get('is_login'): # 验证登录
         flash('please login first')
-        return render_template('login.html')
+        return redirect('/login')
 
     if not session.get('upload_token'): # 验证是否上传过
         flash('Something wrong')
-        return render_template('sierra/base.html')    
+        return redirect('/home')    
     else:
         return True
 
