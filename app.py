@@ -325,7 +325,7 @@ def recognize():
     tmp_out_model.write(bdata)
     tmp_out_model.close()
 
-    uploaded_path,test_result_path='static/TmpUploadDir','static/TmpResult'
+    uploaded_path,test_result_path,tmp_model_path='static/TmpUploadDir','static/TmpResult','static/TmpModels'
     test_img=os.listdir(uploaded_path)
     test_img.remove('.gitkeep')
     # 调用后端的模型调用代码，创建表情识别实例
@@ -335,6 +335,12 @@ def recognize():
     result_list=os.listdir('static/TmpResult')
     result_list.remove('.gitkeep')
     session['result']=result_list
+    for tmp_remove in test_img:  # 删除上传的图片
+        os.remove(os.path.join(uploaded_path, tmp_remove))
+    tmp_model=os.listdir(tmp_model_path)
+    tmp_model.remove('.gitkeep')
+    for tmp_remove in tmp_model:    # 删除临时从mongo取出的model文件
+        os.remove(os.path.join(tmp_model_path, tmp_remove))
     return render_template('testResult.html')
 
 @app.route('/showTestResult',methods=['GET', 'POST'])
