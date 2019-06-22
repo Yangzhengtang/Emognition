@@ -5,54 +5,53 @@
 
 目前本项目已部署到服务器，可以通过访问 http://prp1.work:8090/ 进行使用
 
-![](https://github.com/Yangzhengtang/Emognition/raw/master/homepage.png)
+![](https://github.com/Yangzhengtang/Emognition/raw/master/pics_for_readme/homepage.png)
 
 ## 系统环境
 - 操作系统：Ubuntu 16.04
 - python版本: python3.5 
 - Mongodb版本: Mongo 3.2.22
-- python第三方库引用见 [requirement.txt](https://github.com/Yangzhengtang/Emognition/blob/master/requirement.txt)
+- python第三方库引用见 [requirement.txt](https://github.com/Yangzhengtang/Emognition/raw/master/requirement.txt)
 
 ## 代码目录
-├── static &nbsp; &nbsp; &nbsp; &nbsp;  &nbsp; &nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp;&nbsp;&nbsp;# Web需要的资源目录
-│ &nbsp; &nbsp; &nbsp;  └── TmpModels&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;# web服务过程中的临时文件夹
-│ &nbsp; &nbsp; &nbsp;  └── TmpResult  &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;# web服务过程中的临时文件夹
-│  &nbsp; &nbsp; &nbsp; └── TmpUploadDir &nbsp; &nbsp; &nbsp; &nbsp;# web服务过程中的临时文件夹
-│ &nbsp; &nbsp; &nbsp;  └── css
-│ &nbsp; &nbsp; &nbsp;  └── fonts
-│ &nbsp; &nbsp; &nbsp;  └── img
-│ &nbsp; &nbsp; &nbsp;  └── js
-│ &nbsp; &nbsp; &nbsp;  └── scss
-│ &nbsp; &nbsp; &nbsp;  └── vendors
-├── templates &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp;&nbsp;&nbsp;# Web前端页面设计
-│ &nbsp; &nbsp; &nbsp;  └── sierra&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; # boostrap模板
-│ &nbsp; &nbsp; &nbsp;  ├── login.html
-│ &nbsp; &nbsp; &nbsp;  ├── navigateTest.html
-│ &nbsp; &nbsp; &nbsp;  ├── navigateTrain.html
-│ &nbsp; &nbsp; &nbsp;  ├── progress.html
-│ &nbsp; &nbsp; &nbsp;  ├── register.html
-│ &nbsp; &nbsp; &nbsp;  ├── setTrainLabel.html
-│ &nbsp; &nbsp; &nbsp;  ├── testResult.html
-│ &nbsp; &nbsp; &nbsp;  ├── testSuccess.html
-│ &nbsp; &nbsp; &nbsp;  ├── upload.html
-│ &nbsp; &nbsp; &nbsp;  ├── uploadSuccess.html
-├── transfer_learning_source &nbsp; &nbsp; &nbsp; &nbsp;  &nbsp;# 迁移学习代码
-│ &nbsp; &nbsp; &nbsp;  ├── convert_csv_to_48_48.py
-│ &nbsp; &nbsp; &nbsp;  ├── convert_current.py
-│ &nbsp; &nbsp; &nbsp;  ├── convert_fer2013.py
-│ &nbsp; &nbsp; &nbsp;  ├── emotion_classifier.py
-│ &nbsp; &nbsp; &nbsp;  ├── emotion_classifier_trans.py
-│ &nbsp; &nbsp; &nbsp;  ├── emotion_train_self.py
-│ &nbsp; &nbsp; &nbsp;  ├── image_preprocessing.py
-│ &nbsp; &nbsp; &nbsp;  ├── transfer_VGG.py
-│ &nbsp; &nbsp; &nbsp;  ├── transfer_continue.py
-│ &nbsp; &nbsp; &nbsp;  ├── transfer_learning.py
-│ &nbsp; &nbsp; &nbsp;  ├── transfer_sleep.py
-├── GFS.py &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;# 使用GridFs格式存储照片到mongo所封装的类
-├── app.py &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;# Flask的运行文件，Web服务的核心
-├── check_and_train_models.py &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;# 轮询检查数据集是否已满足迁移学习要求
+├── static &nbsp; &nbsp; &nbsp; &nbsp;  &nbsp; &nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp;&nbsp;&nbsp;# Web需要的资源目录  
+│ &nbsp; &nbsp; &nbsp;  └── TmpModels&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;# web服务过程中的临时文件夹  
+│ &nbsp; &nbsp; &nbsp;  └── TmpResult  &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;# web服务过程中的临时文件夹  
+│  &nbsp; &nbsp; &nbsp; └── TmpUploadDir &nbsp; &nbsp; &nbsp; &nbsp;# web服务过程中的临时文件夹  
+│ &nbsp; &nbsp; &nbsp;  └── css  
+│ &nbsp; &nbsp; &nbsp;  └── fonts  
+│ &nbsp; &nbsp; &nbsp;  └── img  
+│ &nbsp; &nbsp; &nbsp;  └── js  
+│ &nbsp; &nbsp; &nbsp;  └── scss  
+│ &nbsp; &nbsp; &nbsp;  └── vendors  
+├── templates &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp;&nbsp;&nbsp;# Web前端页面设计  
+│ &nbsp; &nbsp; &nbsp;  └── sierra&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; # boostrap模板  
+│ &nbsp; &nbsp; &nbsp;  ├── login.html  
+│ &nbsp; &nbsp; &nbsp;  ├── navigateTest.html  
+│ &nbsp; &nbsp; &nbsp;  ├── navigateTrain.html  
+│ &nbsp; &nbsp; &nbsp;  ├── progress.html  
+│ &nbsp; &nbsp; &nbsp;  ├── register.html  
+│ &nbsp; &nbsp; &nbsp;  ├── setTrainLabel.html  
+│ &nbsp; &nbsp; &nbsp;  ├── testResult.html  
+│ &nbsp; &nbsp; &nbsp;  ├── testSuccess.html  
+│ &nbsp; &nbsp; &nbsp;  ├── upload.html  
+│ &nbsp; &nbsp; &nbsp;  ├── uploadSuccess.html  
+├── transfer_learning_source &nbsp; &nbsp; &nbsp; &nbsp;  &nbsp;# 迁移学习代码  
+│ &nbsp; &nbsp; &nbsp;  ├── convert_csv_to_48_48.py  
+│ &nbsp; &nbsp; &nbsp;  ├── convert_current.py  
+│ &nbsp; &nbsp; &nbsp;  ├── convert_fer2013.py  
+│ &nbsp; &nbsp; &nbsp;  ├── emotion_classifier.py  
+│ &nbsp; &nbsp; &nbsp;  ├── emotion_classifier_trans.py  
+│ &nbsp; &nbsp; &nbsp;  ├── emotion_train_self.py  
+│ &nbsp; &nbsp; &nbsp;  ├── image_preprocessing.py  
+│ &nbsp; &nbsp; &nbsp;  ├── transfer_VGG.py  
+│ &nbsp; &nbsp; &nbsp;  ├── transfer_continue.py  
+│ &nbsp; &nbsp; &nbsp;  ├── transfer_learning.py  
+│ &nbsp; &nbsp; &nbsp;  ├── transfer_sleep.py  
+├── GFS.py &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;# 使用GridFs格式存储照片到mongo所封装的类  
+├── app.py &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;# Flask的运行文件，Web服务的核心  
+├── check_and_train_models.py &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;# 轮询检查数据集是否已满足迁移学习要求  
 ├── requirement.txt &nbsp; &nbsp; &nbsp;  &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; &nbsp;&nbsp;&nbsp;# python第三方库引用列表
-
 ## 项目部署指南
 
 1. 下载项目源码
