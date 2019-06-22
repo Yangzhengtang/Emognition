@@ -276,6 +276,7 @@ def recognize():
     '''
     selected_model_id=request.form.get('model_info')
     db = client.web
+    labels = db.models.files.find_one({'_id': ObjectId(selected_model_id)})['labels']
     selected_json_id = db.models.files.find_one({'modelId': selected_model_id,'type':'json'})['_id']
     selected_xml_id = db.models.files.find_one({'modelId': selected_model_id,'type':'xml'})['_id']
     gfs_model = GFS(Mongo_Database, 'models', client)  # gridfs initialize
@@ -320,7 +321,7 @@ def recognize():
 
     test_imgs=os.listdir(uploaded_path)
     # 调用后端的模型调用代码，创建表情识别实例
-    recog=Recognition(tmp_save_json,tmp_save_model,tmp_save_xml)
+    recog=Recognition(tmp_save_json,tmp_save_model,tmp_save_xml,labels)
     for img in test_imgs:
         origin_img = os.path.join(uploaded_path,img)
         target_img = os.path.join(test_result_path,"marked_"+img)
