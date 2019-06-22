@@ -13,8 +13,8 @@ class MyTest(unittest.TestCase):
     def test_recognize(self):
         self.assertEqual(
         	recognize_func(test.json, test.h5, test.xml, ['angry', 'disgust:', 'fear', 'happy', 'sad', 'surprise', 'neutral'], test1.png), 
-        	['happy'])
-        
+        	['neutral'])
+
 if __name__=='__main__':
     unittest.main(verbosity=2)
 

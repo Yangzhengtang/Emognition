@@ -11,12 +11,6 @@ Mongo_User = ''
 Mongo_Password = ''
 Picture_Collection = 'pictures'
 
-def recognize_func( model_json, model_h5, model_xml, labels, image):
-    recog=Recognition( model_json, model_h5, model_xml, labels)
-    target_image = 'marked' + image
-    emo_list = recog.recognize(images, target_image)   # 保存识别结果
-    return emo_list
-
 class MyTest(unittest.TestCase):
 	def setUp(self):
 		self.client = MongoClient(host=Mongo_Addr, port=Mongo_Port)
