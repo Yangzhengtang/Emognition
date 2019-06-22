@@ -240,7 +240,9 @@ def setTrainLabel():
         #   在用户所预约的model中添加新项
         condition = {'username':session.get('name')}
         result = client.web.users.find_one(condition)
-        result['models'].append(upload_token)
+        if not result.get('order_models'):
+            result['order_models'] = [] #   若没有预约列表，初始化
+        result['order_models'].append(upload_token) #   uplaod_token作为新预约模型标识，添加至预约列表
         client.web.users.update(condition, result)
         return redirect('/uploadSuccess')   #   跳转至结束页面
     else:   
