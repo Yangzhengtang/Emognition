@@ -376,7 +376,6 @@ def recognize():
         print("Recognizing......")
         emo_list = recog.recognize(origin_img, target_img)   # 保存识别结果
         print("Done.")
-
     #   初始化session中的result
     temp_result_list = os.listdir(test_result_path)
     result_list = []
