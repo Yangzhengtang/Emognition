@@ -114,3 +114,7 @@ nohup python3 check_and_train_models.py &
 
 - 选择完模型后可以看到模型识别的结果  
 ![](./pics_for_readme/pic6.png)
+
+## 开发人员
+杨正瑭 胡煜宗 江智昊 尹广浩 施纬  
+302995105@qq.com
