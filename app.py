@@ -32,22 +32,35 @@ gfs=GFS(Mongo_Database, Picture_Collection, client)     #   gridfs initialize
 file_db_handler,file_table_handler = gfs.createDB()
 
 def hash_code(s, salt='huyz'):
+    '''
+    written by 胡煜宗
+    生成随机密钥，用md5进行散列，用于处理用户密码
+    return:    field列表
+    '''
     md5 = hashlib.md5()
     s += salt
     md5.update(s.encode('utf-8'))
     return md5.hexdigest()
 
 def get_values_from_db(table, field):
+    '''
+    written by 杨正瑭
+    查找mongodb中table中对应所有现存field
+    :return:    field列表
+    '''
     value_list = []
     db = client.web
     results = db[table].find()
     for result in results:
-        #print(result)
         value_list.append(result[field])
     return value_list
 
 def get_random_string():
-    #   生成8位随机字符串
+    '''
+    written by 杨正瑭
+    生成8位随机字符串
+    :return:    字符串
+    '''
     seed = "1234567890abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ!@#$%^&*()_+=-"
     sa = []
     for i in range(8):
@@ -158,21 +171,41 @@ def logout():
 
 @app.route('/')
 def index():
+    '''
+    written by 杨正瑭
+    首页界面
+    :return:    显示sierra/base.html页面
+    '''
     return render_template('sierra/base.html')
 
 @app.route('/home', methods=['GET', 'POST'])
 def goHome():
+    '''
+    written by 杨正瑭
+    首页界面
+    :return:    显示sierra/base.html页面
+    '''
     return render_template('sierra/base.html')
 
 @app.route('/uploadSuccess', methods=['GET', 'POST'])
 def uploadSuccess():
-    session.pop('upload_token',None)
-    #del session['upload_token'] # 清空session中upload_token
+    '''
+    written by 杨正瑭
+    跳转至上传成功后的页面
+    :return:    显示uploadSuccess.html页面
+    '''
+    session.pop('upload_token',None)    # 清空session中upload_token
     print(str(session))
     return render_template('uploadSuccess.html')
 
 @app.route('/setTrainLabel',methods=['POST','GET'])
 def setTrainLabel():
+    '''
+    written by 杨正瑭
+    在用户对新模型进行迁移学习时，显示页面由用户选择图片
+    对应标签
+    :return:    
+    '''
     if(isValid()):
         upload_token = session['upload_token']
         upload_dir = os.path.join('static/TmpUploadDir', upload_token)
@@ -180,14 +213,13 @@ def setTrainLabel():
         uploaded_files = []
         for file in temp_uploaded_files:
             uploaded_files.append(os.path.join(upload_dir, file))
-
     #   以下两个变量用于判断跳转来源
     selected_label_before = request.form.getlist('selected_label_before')   #   args from navigateTrain.html
     selected_label_after = request.form.getlist('selected_label_after')     #   args from setTrainLabel.html
-
-    if(selected_label_after!=[]):    #   from setTrainLabel.html，完成标注后
+    if(selected_label_after!=[]):    
+    #   完成标注后（从setTrainLabel.html跳转而来）
         uploaded_files = session['uploaded_files']
-        showing_pic = uploaded_files.pop()  #   列表最后一张照片已经显示，pop之
+        showing_pic = uploaded_files.pop()          #   列表最后一张照片已经显示，pop之
         session['uploaded_files'] = uploaded_files
         query = {'filename': showing_pic}           #   准备更新数据库,插入照片
         id = gfs.insertFile(file_db_handler, showing_pic, query, selected_label_after[0])  
@@ -196,15 +228,15 @@ def setTrainLabel():
             result = client.web.labels.find_one(condition)
             result['count'] += 1
         client.web.labels.update(condition, result)
-
-    else:           #   from navigateTrain.html，即第一次需要标注时，只需显示页面
+    else:                                           
+    #  第一次需要标注时，只需显示页面（ 从navigateTrain.html跳转而来）
         #   初始化session中的uploaded_files
         session['uploaded_files'] = uploaded_files
         #   数据库中新建model
         query = {'labels': selected_label_before, 'upload_token': upload_token}
         client.web.models.insert(query)
-    
-    if(not len(uploaded_files)):   #   列表中无文件，标记完毕
+    if(not len(uploaded_files)):   
+    #   列表中无文件，标记完毕
         #   在用户所预约的model中添加新项
         condition = {'username':session.get('name')}
         result = client.web.users.find_one(condition)
@@ -217,6 +249,11 @@ def setTrainLabel():
 
 @app.route('/progress')
 def progressPage():
+    '''
+    written by 杨正瑭
+    完成选择标签任务后，跳转至进度页面，显示现在各个标签上传进度
+    :return:    progress.html页面  
+    '''
     db = client.web
     result_list = db.labels.find()
     label_list = []
@@ -228,9 +265,13 @@ def progressPage():
 
 @app.route('/navigateTrain', methods=['GET', 'POST'])
 def navigateTrain():
-    if request.method == 'POST': #   点击add按钮的情况(navigateAdditionLabel)，添加标签，再次刷新
+    '''
+    written by 杨正瑭
+    选择train按钮后，跳转至中间页面
+    :return:    
+    '''    
+    if request.method == 'POST': 
         print('something wrong.')
-
     else:   #   第一次点开navigateTrain的情况
         label_list = get_values_from_db('labels', 'emo')
         return render_template('navigateTrain.html', label_list=label_list)
@@ -255,6 +296,11 @@ def navigateTest():
 
 @app.route('/navigateAdditionLabel', methods=['GET', 'POST'])
 def navigateAdditionLabel():
+    '''
+    written by 杨正瑭
+    显示在挑选标签页面，若有新加标签，添加并刷新显示
+    :return:    
+    '''
     if request.method == 'POST':    #   点击add按钮的情况，添加标签，再次刷新返回navigateTrain页面
         #   Todo: add multiple labels
         label_list = get_values_from_db('labels', 'emo')
@@ -269,6 +315,7 @@ def navigateAdditionLabel():
 @app.route('/testResult',methods=['GET', 'POST'])
 def recognize():
     '''
+    written by 胡煜宗
     使用选中的已有模型进行识别，对应于navigateTest.html中的表单提交
     先根据用户选中的模型，从mongo中读取模型，存于static/TmpModels的临时目录下，对static/TmpUploadDir下上传的图片进行识别
     识别结果存于static/TmpResult临时目录中
@@ -371,7 +418,12 @@ def showTestResult():
         return redirect('/uploadSuccess')
     return render_template('testResult.html')
 
-def isValid():  #   判断本次访问是否合法（是否是由正常顺序访问而来）
+def isValid():
+    '''
+    written by 杨正瑭
+    判断本次访问是否合法（是否是由正常顺序访问而来）
+    :return:
+    '''  
     if not session.get('is_login'): # 验证登录
         flash('please login first')
         return redirect('/login')

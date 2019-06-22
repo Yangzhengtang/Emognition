@@ -1,3 +1,5 @@
+#   Edited by 胡煜宗
+#   Recognition类对象，用于后端表情识别，供前端调用
 import numpy as np
 import cv2
 import sys

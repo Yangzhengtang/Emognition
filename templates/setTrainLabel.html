@@ -1,3 +1,5 @@
+<!--================ Edited by 杨正瑭=================-->
+
 {% extends 'sierra/base.html' %}
 {% block title %}Upload{% endblock title %}
 
@@ -29,25 +31,6 @@
 			            <h3>Please select your description</h3>
 			        </div>
 			    </div>
-                <!--
-                <div class="card">
-                    
-                    <form name="choice" action="setTrainLabel" method='POST'>
-                        {% for label in label_list %}
-                            <div class="checkbox-container">
-                                <label class="checkbox-label">
-                                    <input type="checkbox" name="selected_label_after" value={{ label }}>
-                                    <span class="checkbox-custom rectangular"></span>
-                                </label>
-                                <div class="input-title">{{ label }}</div>
-                            </div>
-                        {% endfor %}
-                        <div class="checkbox-container">
-                            <input type="submit" value="Commit" class="btn btn-primary"></input>
-                        </div>
-                    </form>
-                </div>
-                -->
                 <div class="container">                
                         <form name="choice" action="setTrainLabel" method='POST'>
                             {% for label in label_list %}
