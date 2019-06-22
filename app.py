@@ -236,7 +236,9 @@ def setTrainLabel():
         #   在用户所预约的model中添加新项
         condition = {'username':session.get('name')}
         result = client.web.users.find_one(condition)
-        result['models'].append(upload_token)
+        if not result.get('order_models'):
+            result['order_models'] = [] #   若没有预约列表，初始化
+        result['order_models'].append(upload_token) #   uplaod_token作为新预约模型标识，添加至预约列表
         client.web.users.update(condition, result)
         return redirect('/uploadSuccess')   #   跳转至结束页面
     else:   
@@ -370,8 +372,7 @@ def recognize():
         target_img = os.path.join(test_result_path,"marked_"+img)
         print("Recognizing img, source:%s, target: %s" % (str(origin_img), str(target_img)))
         print("Recognizing......")
-        recog.recognize(origin_img, target_img)   # 保存识别结果
-        print("Recognizing......")
+        emo_list = recog.recognize(origin_img, target_img)   # 保存识别结果
         print("Done.")
     #   初始化session中的result
     temp_result_list = os.listdir(test_result_path)
