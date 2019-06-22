@@ -5,13 +5,13 @@
 
 目前本项目已部署到服务器，可以通过访问 http://prp1.work:8090/ 进行使用
 
-![](https://github.com/Yangzhengtang/Emognition/raw/master/pics_for_readme/homepage.png)
+![](./pics_for_readme/homepage.png)
 
 ## 系统环境
 - 操作系统：Ubuntu 16.04
 - python版本: python3.5 
 - Mongodb版本: Mongo 3.2.22
-- python第三方库引用见 [requirement.txt](https://github.com/Yangzhengtang/Emognition/raw/master/requirement.txt)
+- python第三方库引用见 [requirement.txt](./requirement.txt)
 
 ## 代码目录
 ├── static &nbsp; &nbsp; &nbsp; &nbsp;  &nbsp; &nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp;&nbsp;&nbsp;# Web需要的资源目录  
@@ -95,4 +95,17 @@ nohup python3 check_and_train_models.py &
 ```
 
 ## 用户使用指南
-访问 http://prp1.work:8090/ 并注册登录，登录后可以上传照片
+- 访问 http://prp1.work:8090/ 并注册登录，登录后可以上传照片
+![](./pics_for_readme/pic7.png)
+- 上传照片后可以选择train或是test，train是定制特定分类的表情识别模型，test是利用已有的模型进行表情识别的测试
+![](./pics_for_readme/pic1.png)
+- 选择train后进入标签选择的页面，用户可以选择已有的标签或是自己上传自定义的表情标签，设计新模型
+![](./pics_for_readme/pic2.png)
+- 选择完自定义的模型后，需要对刚才上传的照片打标签
+![](./pics_for_readme/pic3.png)
+- 打完标签后等待后台使用迁移学习对该模型进行快速的训练，只有当数据库中该模型所有标签的照片都达到迁移学习所需要的阈值(目前为100张)时，后台的迁移学习训练才会开始，页面右下角显示当前各个标签的已有数量与阈值的比值
+![](./pics_for_readme/pic4.png)
+- 上传完照片后也可以选择test，直接使用已有的模型进行测试，用户只能使用自己贡献过带有标签的训练照片的模型
+![](./pics_for_readme/pic5.png)
+- 选择完模型后可以看到模型识别的结果
+![](./pics_for_readme/pic6.png)
