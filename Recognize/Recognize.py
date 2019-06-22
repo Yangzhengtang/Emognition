@@ -61,6 +61,7 @@ class Recognition():
     def recognize(self,image,out_path):  # 参数为路径
         faces, img_gray, img = self.face_detect(image)
         spb = img.shape
+        emo_list = []
         for (x, y, w, h) in faces:
             face_img_gray = img_gray[y:y + h, x:x + w]
             results = self.predict_emotion(face_img_gray)  # face_img_gray
@@ -74,6 +75,7 @@ class Recognition():
                   ' surprise:', surprise, ' neutral:', neutral)
             label = np.argmax(result_sum)
             emo = self.emotion_labels[label]
+            emo_list.append(emo)
             print('Emotion : ', emo)
             # 输出最大概率的情绪
             t_size = 2
@@ -85,4 +87,5 @@ class Recognition():
                         www_s, (255, 0, 255), thickness=www, lineType=1)
             cv2.imwrite(out_path, img)
             cv2.waitKey(0)
+        return emo_list
 

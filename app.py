@@ -374,8 +374,7 @@ def recognize():
         target_img = os.path.join(test_result_path,"marked_"+img)
         print("Recognizing img, source:%s, target: %s" % (str(origin_img), str(target_img)))
         print("Recognizing......")
-        recog.recognize(origin_img, target_img)   # 保存识别结果
-        print("Recognizing......")
+        emo_list = recog.recognize(origin_img, target_img)   # 保存识别结果
         print("Done.")
 
     #   初始化session中的result
