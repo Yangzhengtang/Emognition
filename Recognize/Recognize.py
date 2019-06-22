@@ -5,9 +5,11 @@ import cv2
 import sys
 import json
 from keras.models import model_from_json
+from keras.backend import clear_session
 
 class Recognition():
     def __init__(self,jsonfile,h5model_file,xml_file,labels):
+        clear_session()
         self.img_size = 48
         self.emotion_labels = labels
         self.num_class = len(self.emotion_labels)
@@ -18,6 +20,9 @@ class Recognition():
         # load weight
         self.model.load_weights(h5model_file)
         self.xml_file=xml_file
+
+    def __del__(self):
+        clear_session()
 
     def predict_emotion(self,face_img):
         face_img = face_img * (1. / 255)
@@ -67,11 +72,6 @@ class Recognition():
             result_sum = np.array([0] * self.num_class)
             for result in results:
                 result_sum = result_sum + np.array(result)
-                print(result)
-            angry, disgust, fear, happy, sad, surprise, neutral = result_sum
-            # 输出所有情绪的概率
-            print('angry:', angry, 'disgust:', disgust, ' fear:', fear, ' happy:', happy, ' sad:', sad,
-                  ' surprise:', surprise, ' neutral:', neutral)
             label = np.argmax(result_sum)
             emo = self.emotion_labels[label]
             print('Emotion : ', emo)
