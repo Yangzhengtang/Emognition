@@ -1,18 +1,14 @@
-from flask import Flask,request,render_template,redirect,flash,session,get_flashed_messages,url_for
-from pymongo import MongoClient
+from flask import Flask,request,render_template,redirect,flash,session
 from flask_bootstrap import Bootstrap
 import hashlib
 from flask_dropzone import Dropzone
 from bson.objectid import ObjectId
 import os
 from GFS import *
-from Recognize.Recognize import Recognition
-import types 
+from Recognize import Recognition
 import random
-import string
 
 app = Flask(__name__)
-# app.config.from_object(config)
 app.config["SECRET_KEY"] = os.urandom(24)
 app.config['MAX_CONTENT_LENGTH'] = 512 * 1024 * 1024    # 最大上传文件大小
 dropzone = Dropzone(app)
