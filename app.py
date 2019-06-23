@@ -7,6 +7,7 @@ import os
 from GFS import *
 from Recognize import Recognition
 import random
+import datetime
 
 app = Flask(__name__)
 app.config["SECRET_KEY"] = os.urandom(24)
@@ -27,6 +28,11 @@ client = MongoClient(host=Mongo_Addr, port=Mongo_Port)
 gfs=GFS(Mongo_Database, Picture_Collection, client)     #   gridfs initialize
 file_db_handler,file_table_handler = gfs.createDB()
 
+# 用于指示日志类型，类似于C++的宏定义
+NOTE_FLAG=0
+WARNING_FLAG=1
+ERROR_FLAG=2
+
 def hash_code(s, salt='huyz'):
     '''
     written by 胡煜宗
@@ -37,6 +43,21 @@ def hash_code(s, salt='huyz'):
     s += salt
     md5.update(s.encode('utf-8'))
     return md5.hexdigest()
+
+def log(log_info,flag):
+    '''
+    记录日志信息，最后利用输出转向导到日志文件
+    :param log_info: 日志信息字符串
+    :param flag: 指示是note还是error，0表示note，1表示warning, 2表示error
+    :return:
+    '''
+    now = datetime.datetime.now()
+    if flag==0:
+        print('[+]NOTE '+ now+' : '+log_info+'\n')
+    elif flag==1:
+        print('[*]WARNING ' + now + ' : ' + log_info + '\n')
+    elif flag==2:
+        print('[!]ERROR ' + now + ' : ' + log_info + '\n')
 
 def get_values_from_db(table, field):
     '''
@@ -97,7 +118,7 @@ def upload():
             fname=file.filename[:file.filename.find('.')]+"_{:.0f}".format(count)+file.filename[file.filename.find('.'):]
             count+=1
         file.save(os.path.join(upload_dir, fname))  # 保存到临时文件夹
-        print("Got the file. %s" % fname)
+        log("Got uploaded file. %s" % fname,NOTE_FLAG)
     return render_template('upload.html')
 
 
@@ -115,8 +136,10 @@ def register():
         insert_info = {'username':username,'password':password,'models':['5cee6b9f53fbf62c37e49576']}   # 默认添加default model的ID
         if username and password and confirm_password:
             if password != confirm_password:
+                log("somebody error register",WARNING_FLAG)
                 flash('两次输入的密码不一致！')
                 return render_template('register.html', username=username)
+            log("user {} register success".format(username),NOTE_FLAG)
             db = client.web
             db.users.insert(insert_info)
             return redirect('/login')
@@ -145,6 +168,7 @@ def login():
             # 登录成功后存储session信息
             session['is_login'] = True
             session['name'] = username
+            log("user {} log in".format(username),NOTE_FLAG)
             return render_template('sierra/base.html')
         else:
             flash('Bad credential')
@@ -161,6 +185,7 @@ def logout():
     '''
     # 退出登录，清空session
     if session.get('is_login'):
+        log("user {} log out".format(session['name']))
         session.clear()
         return redirect('/')
     return redirect('/')
@@ -191,7 +216,6 @@ def uploadSuccess():
     :return:    显示uploadSuccess.html页面
     '''
     session.pop('upload_token',None)    # 清空session中upload_token
-    print(str(session))
     return render_template('uploadSuccess.html')
 
 @app.route('/setTrainLabel',methods=['POST','GET'])
@@ -256,7 +280,6 @@ def progressPage():
     result_list = db.labels.find()
     label_list = []
     for result in result_list:
-        print(result)
         result.pop('_id')
         label_list.append(result)
     return render_template('progress.html', label_list=label_list)
@@ -269,7 +292,7 @@ def navigateTrain():
     :return:    
     '''    
     if request.method == 'POST': 
-        print('something wrong.')
+        log("navigateTrain got error",ERROR_FLAG)
     else:   #   第一次点开navigateTrain的情况
         label_list = get_values_from_db('labels', 'emo')
         return render_template('navigateTrain.html', label_list=label_list)
@@ -303,7 +326,7 @@ def navigateAdditionLabel():
         #   Todo: add multiple labels
         label_list = get_values_from_db('labels', 'emo')
         additionLabels = request.form.get('additionLabels')
-        print("Got it: " + additionLabels)
+        log("addition label added {}".format(additionLabels),NOTE_FLAG)
         if(additionLabels!='' and (additionLabels not in label_list)): #   Got new input
             db = client.web
             db.labels.insert({'emo': additionLabels, 'count': 0})
@@ -370,10 +393,8 @@ def recognize():
     for img in test_imgs:
         origin_img = os.path.join(uploaded_path,img)
         target_img = os.path.join(test_result_path,"marked_"+img)
-        print("Recognizing img, source:%s, target: %s" % (str(origin_img), str(target_img)))
-        print("Recognizing......")
+        log("Recognizing img, source:%s, target: %s" % (str(origin_img), str(target_img)),NOTE_FLAG)
         emo_list = recog.recognize(origin_img, target_img)   # 保存识别结果
-        print("Done.")
     #   初始化session中的result
     temp_result_list = os.listdir(test_result_path)
     result_list = []
@@ -381,11 +402,12 @@ def recognize():
         result_list.append(os.path.join(test_result_path, result))
 
     session['result'] = result_list
-
+    log("removing tmpdir {}".format(str(uploaded_path)),NOTE_FLAG)
     for tmp_remove in test_imgs:     #   删除上传的图片
         os.remove(os.path.join(uploaded_path, tmp_remove))
     os.removedirs(uploaded_path)    #   删除临时文件夹
 
+    log("removing tmpdir {}".format(str(tmp_model_path)), NOTE_FLAG)
     tmp_model=os.listdir(tmp_model_path)
     for tmp_remove in tmp_model:    # 删除临时从mongo取出的model文件
         os.remove(os.path.join(tmp_model_path, tmp_remove))
@@ -410,7 +432,9 @@ def showTestResult():
 
     if result==[]:
         # 运行到这里说明每个结果文件都删除，此时清空对应临时文件夹
-        os.removedirs(os.path.join('static/TmpResult',upload_token))    #   删除临时文件夹
+        tmp_result_path=os.path.join('static/TmpResult',upload_token)
+        log("removing tmpdir {}".format(str(tmp_result_path)), NOTE_FLAG)
+        os.removedirs(tmp_result_path)    #   删除临时文件夹
         return redirect('/uploadSuccess')
     return render_template('testResult.html')
 

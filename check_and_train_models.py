@@ -8,7 +8,7 @@ from bson.objectid import ObjectId
 Mongo_Addr = '127.0.0.1' #数据库所在ip地址，目前不使用站库分离
 Mongo_Port = 27017
 client = MongoClient(host=Mongo_Addr, port=Mongo_Port)
-threshold=100   # 阈值设为100
+threshold=1000   # 阈值设为1000
 
 
 def check_model():
