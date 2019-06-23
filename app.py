@@ -186,7 +186,7 @@ def logout():
     '''
     # 退出登录，清空session
     if session.get('is_login'):
-        log("user {} log out".format(session['name']))
+        log("user {} log out".format(session['name']),NOTE_FLAG)
         session.clear()
         return redirect('/')
     return redirect('/')
