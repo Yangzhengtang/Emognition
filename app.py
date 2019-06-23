@@ -46,6 +46,7 @@ def hash_code(s, salt='huyz'):
 
 def log(log_info,flag):
     '''
+    written by 胡煜宗
     记录日志信息，最后利用输出转向导到日志文件
     :param log_info: 日志信息字符串
     :param flag: 指示是note还是error，0表示note，1表示warning, 2表示error
@@ -53,11 +54,11 @@ def log(log_info,flag):
     '''
     now = datetime.datetime.now()
     if flag==0:
-        print('[+]NOTE '+ now+' : '+log_info+'\n')
+        print('[+]NOTE '+ str(now)+' : '+log_info)
     elif flag==1:
-        print('[*]WARNING ' + now + ' : ' + log_info + '\n')
+        print('[*]WARNING ' + str(now) + ' : ' + log_info)
     elif flag==2:
-        print('[!]ERROR ' + now + ' : ' + log_info + '\n')
+        print('[!]ERROR ' + str(now) + ' : ' + log_info)
 
 def get_values_from_db(table, field):
     '''

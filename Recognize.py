@@ -60,7 +60,7 @@ class Recognition():
             minNeighbors=1,
             minSize=(30, 30),
         )
-        print('img_gray:', type(img_gray))
+        # print('img_gray:', type(img_gray))
         return faces, img_gray, img
 
     def recognize(self,image,out_path):  # 参数为路径
@@ -76,7 +76,7 @@ class Recognition():
             label = np.argmax(result_sum)
             emo = self.emotion_labels[label]
             emo_list.append(emo)
-            print('Emotion : ', emo)
+            # print('Emotion : ', emo)
             # 输出最大概率的情绪
             t_size = 2
             ww = int(spb[0] * t_size / 300)

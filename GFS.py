@@ -17,7 +17,8 @@ class GFS(object):
     def insertFile(self,db,filePath,query,label): #将文件存入数据表
         fs = GridFS(db,self.file_table)
         if fs.exists(query):
-            print('已经存在该文件')
+            # print('已经存在该文件')
+            pass
         else:
             with open(filePath,'rb') as fileObj:
                 data = fileObj.read()
@@ -41,7 +42,7 @@ class GFS(object):
         attri["upload_date"] = gf.upload_date
         attri["filename"] = gf.filename
         attri['md5']=gf.md5
-        print(attri)
+        # print(attri)
         return (bdata, attri)
 
     def write_2_disk(self,path,bdata, attri): #将二进制数据存入磁盘
@@ -50,7 +51,7 @@ class GFS(object):
             output = open(path+name, 'wb')
         output.write(bdata)
         output.close()
-        print("fetch image ok!")
+        # print("fetch image ok!")
  
     def remove(self,db,id): #文件数据库中数据的删除
         fs = GridFS(db, self.file_table)        
