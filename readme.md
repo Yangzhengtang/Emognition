@@ -47,6 +47,13 @@
 │ &nbsp; &nbsp; &nbsp;  ├── transfer_continue.py  
 │ &nbsp; &nbsp; &nbsp;  ├── transfer_learning.py  
 │ &nbsp; &nbsp; &nbsp;  ├── transfer_sleep.py  
+├── test_cases &nbsp; &nbsp; &nbsp; &nbsp;  &nbsp;# 自动测试脚本代码及测试输入  
+│ &nbsp; &nbsp; &nbsp;  ├── mongodb_test.py  
+│ &nbsp; &nbsp; &nbsp;  ├── recognize_test.py  
+│ &nbsp; &nbsp; &nbsp;  ├── test1.jpg  
+│ &nbsp; &nbsp; &nbsp;  ├── test2.jpg  
+│ &nbsp; &nbsp; &nbsp;  ├── test3.jpg  
+│ &nbsp; &nbsp; &nbsp;  ├── test4.jpg  
 ├── GFS.py &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;# 使用GridFs格式存储照片到mongo所封装的类  
 ├── app.py &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;# Flask的运行文件，Web服务的核心  
 ├── check_and_train_models.py &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;# 轮询检查数据集是否已满足迁移学习要求  
